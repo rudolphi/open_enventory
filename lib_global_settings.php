@@ -84,7 +84,7 @@ define("async_per_page",10); // Standardwert Ergebnisse pro Seite - asynchrone
 define("molecules_per_async_page",3); // Standardwert Ergebnisse pro Seite - Moleküle asynchron
 define("molecule_names_by_lang",false); // Trennung der Molekülnamen nach Sprachen
 define("db_server",getenv("DB_SERVER") ?: "localhost");
-define("php_server",getenv("HOSTNAME") ?: "localhost");
+define("php_server",$_SERVER['SERVER_ADDR'] ?: "localhost");
 define("db_system","MySQL");
 define("storage_engine","InnoDB"); // MyISAM or InnoDB
 define("archive_storage_engine","InnoDB"); // MyISAM or InnoDB
