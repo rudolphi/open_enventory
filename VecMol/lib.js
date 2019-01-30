@@ -1,10 +1,14 @@
-// (c) 2012-2018 Sciformation Consulting GmbH, all rights reserved
+// (c) 2012-2019 Sciformation Consulting GmbH, all rights reserved
 
 // for minification only
 prseInt=parseInt;
 
+function len(param) {
+	return param.length;
+}
+
 function avg() {
-	for (var sum=0,i=0,iMax=arguments.length;i<iMax;i++) {
+	for (var sum=0,i=0,iMax=len(arguments);i<iMax;i++) {
 		sum+=arguments[i];
 	}
 	return sum/iMax;
@@ -16,12 +20,12 @@ function ksort(arr) { // like in PHP
 		keys.push(key);
 	}
 	keys.sort();
-	for (i=0,iMax=keys.length;i<iMax;i++) {
+	for (i=0,iMax=len(keys);i<iMax;i++) {
 		key=keys[i];
 		tempArr[key]=arr[key];
 		delete arr[key];
 	}
-	for (i=0,iMax=keys.length;i<iMax;i++) {
+	for (i=0;i<iMax;i++) {
 		key=keys[i];
 		arr[key]=tempArr[key];
 	}
@@ -49,7 +53,7 @@ function colSplit(string,colArray,bin) {
 		return string;
 	}
 	var retval=[],pos=0,col,value,i,iMax;
-	for (i=0,iMax=colArray.length;i<iMax;i++) {
+	for (i=0,iMax=len(colArray);i<iMax;i++) {
 		col=colArray[i];
 		value=string.substr(pos,col);
 		if (!bin) {
@@ -58,7 +62,7 @@ function colSplit(string,colArray,bin) {
 		retval.push(value);
 		pos+=col;
 	}
-	if (string.length>col) {
+	if (len(string)>col) {
 		value=string.substr(pos);
 		if (!bin) {
 			value=trim(value);
@@ -69,7 +73,7 @@ function colSplit(string,colArray,bin) {
 }
 
 function spaceSplit(string) {
-	for (var retval=[],end,i=0,iMax=(string?string.length:0);i<iMax;i++) {
+	for (var retval=[],end,i=0,iMax=(string?len(string):0);i<iMax;i++) {
 		if (string.charAt(i)==S) continue;
 		end=string.indexOf(S,i+1);
 		if (end==-1) {
@@ -83,7 +87,7 @@ function spaceSplit(string) {
 }
 
 function startswith(haystack,needle,caseSensitive) {
-	var start=haystack.substr(0,needle.length);
+	var start=haystack.substr(0,len(needle));
 	if (caseSensitive!=T) {
 		start=start.toLowerCase();
 		needle=needle.toLowerCase();
@@ -92,7 +96,7 @@ function startswith(haystack,needle,caseSensitive) {
 }
 
 function endswith(haystack,needle,caseSensitive) {
-	var pos=haystack.length-needle.length,end;
+	var pos=len(haystack)-len(needle),end;
 	if (pos<0) {
 		return F;
 	}
@@ -135,12 +139,12 @@ function sp(text,n) {
 
 function leftPad(text,n,filler) {
 	text=String(text);
-	if (text.length>n) {
+	if (len(text)>n) {
 		return text.substr(0,n); // cut away on right side
 	}
-	var len=text.length;
-	while (len<n) { // fill on left side
-		len++;
+	var leng=len(text);
+	while (leng<n) { // fill on left side
+		leng++;
 		text=filler+text;
 	}
 	return text;
@@ -148,12 +152,12 @@ function leftPad(text,n,filler) {
 
 function rightPad(text,n,filler) {
 	text=String(text);
-	if (text.length>n) {
+	if (len(text)>n) {
 		return text.substr(0,n); // cut away on right side
 	}
-	var len=text.length;
-	while (len<n) { // fill on right side
-		len++;
+	var leng=len(text);
+	while (leng<n) { // fill on right side
+		leng++;
 		text+=filler;
 	}
 	return text;
@@ -186,7 +190,7 @@ function defBlank(val) {
 function getNumber(text) {
 	text=String(text);
 	var match=text.match(/\-?\d+[\.,]?\d*/);
-	if (match!=null && match.length>0) {
+	if (match!=null && len(match)>0) {
 		return defBlank(match[0]);
 	}
 	return "";
