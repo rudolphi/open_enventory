@@ -90,12 +90,12 @@ class graph {
 	private function drawGrid() {
 		for ($tickcount = ceil(($this->config['dimensions']['width']-($this->config['axisOffset']['y']+$this->config['margin']['right']))/($this->graphData['tickDistance']['x']/2))-1; $tickcount>-1; $tickcount--) {
 			for($a=0; $a<$this->config['thickness']; $a++) {
-				imageline($this->image, $this->config['axisOffset']['y']+($this->graphData['tickDistance']['x']/2)+$a+($tickcount-1)*($this->graphData['tickDistance']['x']/2), $this->config['margin']['top'], $this->config['axisOffset']['y']+($this->graphData['tickDistance']['x']/2)+$a+($tickcount-1)*($this->graphData['tickDistance']['x']/2), $this->config['dimensions']['height']-($this->config['axisOffset']['x']-$this->config['tickSize']['small']), $this->config['colors']['grid']);
+				imgline($this->image, $this->config['axisOffset']['y']+($this->graphData['tickDistance']['x']/2)+$a+($tickcount-1)*($this->graphData['tickDistance']['x']/2), $this->config['margin']['top'], $this->config['axisOffset']['y']+($this->graphData['tickDistance']['x']/2)+$a+($tickcount-1)*($this->graphData['tickDistance']['x']/2), $this->config['dimensions']['height']-($this->config['axisOffset']['x']-$this->config['tickSize']['small']), $this->config['colors']['grid']);
 			}
 		}
 		for ($tickcount = ceil(($this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->config['margin']['top']))/($this->graphData['tickDistance']['y']/2))-1; $tickcount>-1; $tickcount--) {
 			for($a=0; $a<$this->config['thickness']; $a++) {
-				imageline($this->image, ($this->config['axisOffset']['y']-$this->config['tickSize']['small']), $this->config['dimensions']['height']-($this->config['axisOffset']['x']+($this->graphData['tickDistance']['y']/2)+$a)-(($this->graphData['tickDistance']['y']/2)*($tickcount-1)), $this->config['dimensions']['width']-$this->config['margin']['right'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+($this->graphData['tickDistance']['y']/2)+$a)-(($this->graphData['tickDistance']['y']/2)*($tickcount-1)), $this->config['colors']['grid']);
+				imgline($this->image, ($this->config['axisOffset']['y']-$this->config['tickSize']['small']), $this->config['dimensions']['height']-($this->config['axisOffset']['x']+($this->graphData['tickDistance']['y']/2)+$a)-(($this->graphData['tickDistance']['y']/2)*($tickcount-1)), $this->config['dimensions']['width']-$this->config['margin']['right'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+($this->graphData['tickDistance']['y']/2)+$a)-(($this->graphData['tickDistance']['y']/2)*($tickcount-1)), $this->config['colors']['grid']);
 			}
 		}
 	}
@@ -106,7 +106,7 @@ class graph {
 	private function drawAxis() {
 		// draws x axis
 		for($a=0; $a<$this->config['thickness']; $a++) {
-			imageline($this->image, $this->config['axisOffset']['y'], $this->config['dimensions']['height']-$this->config['axisOffset']['x']-$this->xAxisCorrection+$a, $this->config['dimensions']['width']-$this->config['margin']['right'], $this->config['dimensions']['height']-$this->config['axisOffset']['x']-$this->xAxisCorrection+$a, $this->config['colors']['axis']);
+			imgline($this->image, $this->config['axisOffset']['y'], $this->config['dimensions']['height']-$this->config['axisOffset']['x']-$this->xAxisCorrection+$a, $this->config['dimensions']['width']-$this->config['margin']['right'], $this->config['dimensions']['height']-$this->config['axisOffset']['x']-$this->xAxisCorrection+$a, $this->config['colors']['axis']);
 		}
 		if($this->graphData['drawingStyle']==2) {
 			$pointsXArrow = array($this->config['axisOffset']['y'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->xAxisCorrection+$this->config['arrowSize']), $this->config['axisOffset']['y'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->xAxisCorrection-$this->config['arrowSize']), $this->config['axisOffset']['y']-$this->config['arrowSize'], $this->config['dimensions']['height']-$this->config['axisOffset']['x']-$this->xAxisCorrection);
@@ -118,7 +118,7 @@ class graph {
 		
 		// draws y axis
 		for($a=0; $a<$this->config['thickness']; $a++) {
-			imageline($this->image, $this->config['axisOffset']['y']+$a+$this->yAxisCorrection, $this->config['margin']['top'], $this->config['axisOffset']['y']+$a+$this->yAxisCorrection, $this->config['dimensions']['height']-$this->config['axisOffset']['x'], $this->config['colors']['axis']);
+			imgline($this->image, $this->config['axisOffset']['y']+$a+$this->yAxisCorrection, $this->config['margin']['top'], $this->config['axisOffset']['y']+$a+$this->yAxisCorrection, $this->config['dimensions']['height']-$this->config['axisOffset']['x'], $this->config['colors']['axis']);
 		}
 		$pointsYArrow = array($this->config['axisOffset']['y']+$this->yAxisCorrection-$this->config['arrowSize'], $this->config['margin']['top'], $this->config['axisOffset']['y']+$this->yAxisCorrection+$this->config['arrowSize'], $this->config['margin']['top'], $this->config['axisOffset']['y']+$this->yAxisCorrection, $this->config['margin']['top']-$this->config['arrowSize']);
 		imagefilledpolygon($this->image, $pointsYArrow, 3, $this->config['colors']['axis']);
@@ -126,7 +126,7 @@ class graph {
 		// draws 2nd y axis
 		if($this->config['2ndYAxis'] == true) {
 			for($a=0; $a<$this->config['thickness']; $a++) {
-				imageline($this->image, $this->secondYAxisPosition+$a, $this->config['margin']['top'], $this->secondYAxisPosition+$a, $this->config['dimensions']['height']-$this->config['axisOffset']['x'], $this->config['colors']['axis']);
+				imgline($this->image, $this->secondYAxisPosition+$a, $this->config['margin']['top'], $this->secondYAxisPosition+$a, $this->config['dimensions']['height']-$this->config['axisOffset']['x'], $this->config['colors']['axis']);
 			}
 			$pointsYArrow = array($this->secondYAxisPosition-$this->config['arrowSize'], $this->config['margin']['top'], $this->secondYAxisPosition+$this->config['arrowSize'], $this->config['margin']['top'], $this->secondYAxisPosition, $this->config['margin']['top']-$this->config['arrowSize']);
 			imagefilledpolygon($this->image, $pointsYArrow, 3, $this->config['colors']['axis']);
@@ -153,7 +153,7 @@ class graph {
 		$factor=ceil(($this->config['dimensions']['width']-($this->config['axisOffset']['y']+$this->config['margin']['right']))/$this->graphData['tickDistance']['x']);
 		for ($tickcount = ceil(($this->config['dimensions']['width']-($this->config['axisOffset']['y']+$this->config['margin']['right']))/$this->graphData['tickDistance']['x']); $tickcount>0; $tickcount--) {
 			for($a=0; $a<$this->config['thickness']; $a++) {
-				imageline($this->image, $this->config['axisOffset']['y']+$a+($tickcount-1)*$this->graphData['tickDistance']['x'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->xAxisCorrection+$this->config['tickSize']['big']), $this->config['axisOffset']['y']+$a+($tickcount-1)*$this->graphData['tickDistance']['x'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->xAxisCorrection-$this->config['tickSize']['big']), $this->config['colors']['axis']);
+				imgline($this->image, $this->config['axisOffset']['y']+$a+($tickcount-1)*$this->graphData['tickDistance']['x'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->xAxisCorrection+$this->config['tickSize']['big']), $this->config['axisOffset']['y']+$a+($tickcount-1)*$this->graphData['tickDistance']['x'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->xAxisCorrection-$this->config['tickSize']['big']), $this->config['colors']['axis']);
 			}
 			if($this->graphData['drawingStyle']==2) {
 				$xLabel = $this->graphData['extrema']['minima']['x']+($factor-1)*$this->graphData['tickScale']['x']-($tickcount-1)*$this->graphData['tickScale']['x'];
@@ -167,11 +167,11 @@ class graph {
 		// y-direction
 		for ($tickcount = ceil(($this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->config['margin']['top']))/$this->graphData['tickDistance']['y']); $tickcount>0; $tickcount--) {
 			for($a=0; $a<$this->config['thickness']; $a++) {
-				imageline($this->image, $this->config['axisOffset']['y']+$this->yAxisCorrection-$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->config['axisOffset']['y']+$this->yAxisCorrection+$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->config['colors']['axis']);
+				imgline($this->image, $this->config['axisOffset']['y']+$this->yAxisCorrection-$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->config['axisOffset']['y']+$this->yAxisCorrection+$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->config['colors']['axis']);
 			}
 			if($this->config['2ndYAxis'] == true) {
 				for($a=0; $a<$this->config['thickness']; $a++) {
-					imageline($this->image, $this->secondYAxisPosition-$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->secondYAxisPosition+$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->config['colors']['axis']);
+					imgline($this->image, $this->secondYAxisPosition-$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->secondYAxisPosition+$this->config['tickSize']['big'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->config['colors']['axis']);
 					imagefttext($this->image, $this->config['textAttributes']['size'], 0, $this->secondYAxisPosition+$this->config['tickSize']['big']+5, $this->config['dimensions']['height']-($this->config['axisOffset']['x']-5)-($this->graphData['tickDistance']['y']*($tickcount-1)), $this->config['colors']['text'], $this->config['textAttributes']['font'], $this->graphData['extrema']['minima']['y2']+($tickcount-1)*$this->graphData['tickScale']['y2']);
 				}
 			}
@@ -194,13 +194,13 @@ class graph {
 				if($this->graphData['graphs'][$j]['points'][$i]['x']<$this->config['dimensions']['width']-($this->config['axisOffset']['y']+$this->config['margin']['right']) && $this->graphData['graphs'][$j]['points'][$i]['x']>=0) {
 					for($a=0; $a<$this->config['thickness']; $a++) {
 						if($this->graphData['graphs'][$j]['points'][$i+1] != NULL && $this->graphData['drawingStyle']==0) {
-							imageline($this->image, $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i]['y']+$a), $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i+1]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i+1]['y']+$a), $this->config['colors']['graphs'][$j]);
+							imgline($this->image, $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i]['y']+$a), $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i+1]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i+1]['y']+$a), $this->config['colors']['graphs'][$j]);
 						}
 						elseif($this->graphData['drawingStyle']==1) {
-							imageline($this->image, $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a), $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i]['y']+$a), $this->config['colors']['graphs'][$j]);
+							imgline($this->image, $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$a), $this->config['axisOffset']['y']+$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i]['y']+$a), $this->config['colors']['graphs'][$j]);
 						}
 						elseif($this->graphData['graphs'][$j]['points'][$i+1] != NULL && $this->graphData['drawingStyle']==2) {
-							imageline($this->image, $this->config['axisOffset']['y']+$this->xGraphStart-$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i]['y']+$a), $this->config['axisOffset']['y']+$this->xGraphStart-$this->graphData['graphs'][$j]['points'][$i+1]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i+1]['y']+$a), $this->config['colors']['graphs'][$j]);
+							imgline($this->image, $this->config['axisOffset']['y']+$this->xGraphStart-$this->graphData['graphs'][$j]['points'][$i]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i]['y']+$a), $this->config['axisOffset']['y']+$this->xGraphStart-$this->graphData['graphs'][$j]['points'][$i+1]['x']+$a, $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['points'][$i+1]['y']+$a), $this->config['colors']['graphs'][$j]);
 						}
 					}
 				}
@@ -223,7 +223,7 @@ class graph {
 		for($j = 0; $j<count($this->graphData['graphs']); $j++) {
 			for($i = 0; $i<count($this->graphData['graphs'][$j]['peaks']); $i++)	{
 				for($a=0; $a<$this->config['thickness']; $a++) {
-					imageline($this->image, $this->config['axisOffset']['y']+$this->xGraphStart+$this->sign*$this->graphData['graphs'][$j]['peaks'][$i]['x']+$a,  $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['peaks'][$i]['y']+$spacer), $this->config['axisOffset']['y']+$this->xGraphStart+$this->sign*$this->graphData['graphs'][$j]['peaks'][$i]['x']+$a,  $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$tickCorrection+$this->graphData['graphs'][$j]['peaks'][$i]['y']), $this->config['colors']['peaks']);
+					imgline($this->image, $this->config['axisOffset']['y']+$this->xGraphStart+$this->sign*$this->graphData['graphs'][$j]['peaks'][$i]['x']+$a,  $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['peaks'][$i]['y']+$spacer), $this->config['axisOffset']['y']+$this->xGraphStart+$this->sign*$this->graphData['graphs'][$j]['peaks'][$i]['x']+$a,  $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$tickCorrection+$this->graphData['graphs'][$j]['peaks'][$i]['y']), $this->config['colors']['peaks']);
 				}
 				imagefttext($this->image, $this->config['textAttributes']['size']-1, 0, $this->config['axisOffset']['y']+$this->xGraphStart+$this->sign*$this->graphData['graphs'][$j]['peaks'][$i]['x'], $this->config['dimensions']['height']-($this->config['axisOffset']['x']+$this->graphData['graphs'][$j]['peaks'][$i]['y'])+$labelCorrection, $this->config['colors']['peaks'], $this->config['textAttributes']['font'], round($this->graphData['graphs'][$j]['peaks'][$i]['xOld'], $this->config['precision']['x']));
 			}
