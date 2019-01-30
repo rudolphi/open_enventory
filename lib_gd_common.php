@@ -310,7 +310,7 @@ function imgline(& $im,$x1,$y1,$x2,$y2,$color,$width=1,$format="gif") {
 		for ($a=-$width+0.5;$a<$width;$a+=0.5) {
 			$dax=$a*$dx;
 			$day=$a*$dy;
-			imageline($im,$x1+$dax,$y1-$day,$x2+$dax,$y2-$day,$color);
+			return imageline($im,(int) round($x1+$dax),(int) round($y1-$day),(int) round($x2+$dax),(int) round($y2-$day),$color);
 		}
 	break;
 	case "svg":

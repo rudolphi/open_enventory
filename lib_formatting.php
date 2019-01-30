@@ -187,7 +187,8 @@ function makeHTMLSafe($html) {
 	$html=replaceStyles($html,array("margin: 0cm 0cm 0pt"),array("margin: 0;")); // must have ; at the end
 	
 	// remove Firefox artefacts, may be nested
-	$html=replaceRecursive("/(?ims)<span (style=\"\"|class=\"trans\")>([^<>]*)<\/span>/","$2",$html);
+	$html=replaceRecursive("/(?ims)<span (style=\"\"|class=\"trans\")>([^<>]*)<\/span>/","$2",$html); // old Firefox
+	$html=replaceRecursive("/(?ims)<span(?: id=\"[^\"]*\")? style=\"width:\s?100%;\s?height:\s?100%;\">([^<>]*)<\/span>/","$1",$html); // new Firefox
 	
 	// remove MS Office paragraphs, may be nested
 	$html=replaceRecursive("/(?ims)<p class=\"MsoNormal\">(.*?)<\/p>/","$1",$html);

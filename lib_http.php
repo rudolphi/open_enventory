@@ -39,9 +39,14 @@ function oe_http_backend($method,$url,$data=array(),$files=array(),$options=arra
 	}
 	if (is_array($data)) foreach ($data as $key => $value) {
 		$request->addPostParameter($key,$value);
+	} elseif ($data) {
+		$request->setBody($data);
 	}
 	if (is_array($files)) foreach ($files as $file_info) {
 		$request->addUpload($file_info["name"],$file_info["file"],$file_info["file"],$file_info["type"]);
+	}
+	if ($options["mime"]) {
+		$request->setHeader("Content-type",$options["mime"]);
 	}
 	if ($options["redirect"]) {
 		$request->setConfig("follow_redirects",true);
@@ -50,12 +55,17 @@ function oe_http_backend($method,$url,$data=array(),$files=array(),$options=arra
 	oe_http_map_option($request,$options,"proxyhost","proxy");
 	oe_http_map_option($request,$options,"connect_timeout","connect_timeout");
 	oe_http_map_option($request,$options,"timeout","timeout");
-	$request->setHeader("user-agent",$options["useragent"]);
+	$request->setHeader("User-Agent",$options["useragent"]);
 	if ($options["referer"]) {
 		$request->setHeader("referer",$options["referer"]);
 	}
+	$request->setHeader("Accept","text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8");
+	$request->setHeader("Accept-Encoding","gzip, deflate, br");
 	if ($options["accept-language"]) {
-		$request->setHeader("accept-language",$options["accept-language"]);
+		$request->setHeader("Accept-Language",$options["accept-language"]);
+	} else {
+		// needed for merck
+		$request->setHeader("Accept-Language","en-US");
 	}
 	
 	// unsecure, but not critical for this application
