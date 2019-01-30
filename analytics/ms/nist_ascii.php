@@ -117,13 +117,12 @@ class nist_ascii extends converter {
 		$interpretationString="m/z (%)\n";
 		for($a=0; $a<count($this->graphData['graphs'][0]['peaks']); $a++) {
 			if($a!=0) {
-				$interpretationString=$interpretationString.", ".round($this->graphData['graphs'][0]['peaks'][$a]['x'], 0)." (".round($this->graphData['graphs'][0]['peaks'][$a]['y']).")";
+				$interpretationString.=", ".round($this->graphData['graphs'][0]['peaks'][$a]['x'], 0)." (".round($this->graphData['graphs'][0]['peaks'][$a]['y']).")";
 			}
 			else {
-				$interpretationString=$interpretationString.round($this->graphData['graphs'][0]['peaks'][$a]['x'], 0)." (".round($this->graphData['graphs'][0]['peaks'][$a]['y']).")";
+				$interpretationString.=round($this->graphData['graphs'][0]['peaks'][$a]['x'], 0)." (".round($this->graphData['graphs'][0]['peaks'][$a]['y']).")";
 			}
 		}
-		$interpretationString=$interpretationString."\n";
 		$this->graphData['interpretation']=$interpretationString;	// set interpretation
 	}
 	
