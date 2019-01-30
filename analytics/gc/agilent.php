@@ -83,6 +83,8 @@ class agilent extends converter {
 					$resultsTableActive=true;
 				}
 			}
+			// make ASCII table work
+			$this->graphData['interpretation']="<pre>".$this->graphData['interpretation']."</pre>";
 		}
 		
 		// saves the spectrum image if there is one available
