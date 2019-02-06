@@ -392,6 +392,10 @@ function getImageLink($paramHash) {
 }
 
 function getNavigationSelect($baseURL,$currentPage,$per_page,$total_count,& $sort_hints,$target="self") { // return HTML-Code, no echo possible for async
+	# from somewhere $baseURL get's a leading slash which destroys the URL scheme.
+	# simplest solution is to trim it away
+	$baseURL = ltrim($baseURL, "/");
+
 	//~ & $quick_res
 	if ($total_count<=$per_page || $per_page==0 || $per_page==-1) {	
 		return "";
