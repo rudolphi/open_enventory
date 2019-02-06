@@ -74,7 +74,7 @@ echo "<title>".s("lab_journal_title")." ".$g_settings["organisation_name"]."</ti
 	style.
 	getFixedStyleBlock().
 	_style.
-	loadJS(array("DYMO.Label.Framework.2.0.2.js","chem.js","safety.js","controls.js","jsDatePick.min.1.3.js","forms.js","folder_browser.js","literature.js","sds.js","molecule_edit.js","searchpk.js","subitemlist_helper.js","subitemlist_get.js","subitemlist.js","client_cache.js","edit.js","units.js",),"lib/").
+	loadJS(array("DYMO.Label.Framework.3.0.js","chem.js","safety.js","controls.js","jsDatePick.min.1.3.js","forms.js","folder_browser.js","literature.js","sds.js","molecule_edit.js","searchpk.js","subitemlist_helper.js","subitemlist_get.js","subitemlist.js","client_cache.js","edit.js","units.js",),"lib/").
 	loadJS(array("wyzz.js")). // wyzz
 	script.
 	getRefReaction();
@@ -436,7 +436,9 @@ elseif ($table=="analytical_data" && isset($_REQUEST["analytics_type_name"])) {
 		"limit" => 1, 
 	));
 	$result[0]=getDefaultDataset($table);
-	$result[0]["analytics_type_id"]=$analytics_type["analytics_type_id"];
+	if (!isEmptyStr($analytics_type["analytics_type_id"])) {
+		$result[0]["analytics_type_id"]=$analytics_type["analytics_type_id"];
+	}
 }
 // neues Gerät, Analytikart voreingestellt ================================================================
 elseif ($table=="analytics_device" && isset($_REQUEST["analytics_type_id"])) {

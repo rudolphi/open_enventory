@@ -45,19 +45,17 @@ $GLOBALS["suppliers"][$code]=array(
 	),
 "init" => create_function('',getFunctionHeader().'
 	$suppliers[$code]["urls"]["server"]="https://www.merckmillipore.com"; // startPage
-	$suppliers[$code]["urls"]["search_suffix"]="ViewParametricSearch-SimpleOfferSearch?SynchronizerToken=&search=&TrackingSearchType=SB+-+Search+Box&SearchContextPageletUUID=&SearchTerm=";
-	$suppliers[$code]["urls"]["search_suffix2"]="&SelectedSearchResult=SFProductSearch&PageSize=20&search=";
+	$suppliers[$code]["urls"]["search"]=$urls["server"]."/DE/en/search/%2B";
+	$suppliers[$code]["urls"]["search_suffix"]="/browse?SynchronizerToken=&TrackingSearchType=filter&SearchTerm=%2B";
+	$suppliers[$code]["urls"]["search_suffix2"]="&SelectedSearchResult=SFProductSearch&PageSize=20";
 	$suppliers[$code]["urls"]["detail"]=$urls["server"]."/DE/en/product/";
 	$suppliers[$code]["urls"]["startPage"]=$urls["server"];
 '),
 "requestResultList" => create_function('$query_obj',getFunctionHeader().'
 	$retval["method"]="url";
-	$retval["action"]=$suppliers[$code]["urls"]["search"].$query_obj["vals"][0][0];
+	$retval["action"]=$suppliers[$code]["urls"]["search"].urlencode($query_obj["vals"][0][0]).$urls["search_suffix"].urlencode($query_obj["vals"][0][0]).$urls["search_suffix2"];
 	
 	return $retval;
-'),
-"getURL" => create_function('$suffix',getFunctionHeader().'
-	return $urls["server"]."/INTERSHOP/web/WFS/Merck-DE-Site/en_US/-/EUR/".$suffix;
 '),
 "getDetailPageURL" => create_function('$catNo',getFunctionHeader().'
 	if (empty($catNo)) {
@@ -79,12 +77,12 @@ $GLOBALS["suppliers"][$code]=array(
 	return $self["procDetail"]($response,$catNo);
 '),
 "getHitlist" => create_function('$searchText,$filter,$mode="ct",$paramHash=array()',getFunctionHeader().'
-	$url=$self["getURL"]($urls["search_suffix"]).urlencode($searchText).$urls["search_suffix2"];
+	$url=$urls["search"].urlencode($searchText).$urls["search_suffix"].urlencode($searchText).$urls["search_suffix2"];
 	$my_http_options=$default_http_options;
-	$my_http_options["redirect"]=maxRedir;
 	$my_http_options["cookies"]=array(
 		"CookieAcceptance" => "accepted",
-		"SelectedCountry" => "de",
+		"SelectedCountry" => "DE",
+		"SelectedCountryCode" => "DE",
 		"PreferredChannel" => "Merck-DE-Site",
 		"PreferredLocale" => "en_US",
 	);
@@ -128,7 +126,8 @@ $GLOBALS["suppliers"][$code]=array(
 		}
 	}
 	
-	if (preg_match("/(?ims)<h1[^>]*>(.*?)\|(.*?)<\/h1>/",$body,$name_data)) {
+	if (preg_match("/(?ims)<h1[^>]*>(.*?)<\/span>(.*?)<\/h1>/",$body,$name_data)) {
+		$catNo=fixTags($name_data[1]);
 		$result["molecule_names_array"][]=fixTags($name_data[2]);
 	}
 	
@@ -273,7 +272,7 @@ $GLOBALS["suppliers"][$code]=array(
 		elseif ($name=="ld 50 dermal") {
 			$result["molecule_property"][]=array("class" => "LD50_derm", "source" => $code, "conditions" => $value);
 		}
-		elseif ($name=="hazard symbol") {
+		elseif (startswith($name,"hazard symbol")) {
 			$safety_sym=array();
 			foreach ($self["safety_sym_dict"] as $search => $sym) {
 				if (strpos($cells[1],$search)!==FALSE) {
@@ -300,7 +299,7 @@ $GLOBALS["suppliers"][$code]=array(
 	return str_replace(array(" ",$type),"",implode("-",$clauses));
 '),
 "procHitlist" => create_function('& $response',getFunctionHeader().'
-	$body=@$response->getBody();
+	$body=str_replace("<span class=\"ish-searchTerm\"></span>", "",@$response->getBody()); // remove garbage
 	
 	// echo $body;
 	$results=array();
@@ -313,12 +312,12 @@ $GLOBALS["suppliers"][$code]=array(
 		$sections=$sections[1];
 //~ 		print_r($sections);
 		for ($b=0;$b<count($sections);$b++) {
-			preg_match("/(?ims)<div[^>]*class=\"container-serp\"[^>]*>.*?<a[^>]*href=\"([^\"]+)\"[^>]*>(.+)\|(.+)<\/h2>(.*?)<\/div>/",$sections[$b],$data_match);
+			preg_match("/(?ims)<div[^>]*class=\"container-serp\"[^>]*>.*?<a[^>]*href=\"([^\"]+)\"[^>]*>(.*?)<\/a>(.*?)<\/span>(.*?)<\/h2>(.*?)<\/span>/",$sections[$b],$data_match);
 			
 			$slashpos=strrpos($data_match[1],"/");
 			$results[]=array(
-				"name" => fixTags($data_match[3]),
-				"addInfo" => fixTags($data_match[4]),
+				"name" => fixTags($data_match[4]),
+				"addInfo" => fixTags($data_match[3])." ".fixTags($data_match[5]),
 				"beautifulCatNo" => fixTags($data_match[2]),
 				"catNo" => fixTags(substr($data_match[1],$slashpos+1)),
 				"supplierCode" => $code, 

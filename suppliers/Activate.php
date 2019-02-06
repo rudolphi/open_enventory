@@ -34,7 +34,9 @@ $GLOBALS["suppliers"][$code]=array(
 	
 "init" => create_function('',getFunctionHeader().'
 	$suppliers[$code]["urls"]["server"]="http://www.activate-scientific.com"; // startPage
-	$suppliers[$code]["urls"]["search"]=$urls["server"]."/search?sSearch=";
+	$suppliers[$code]["urls"]["chemicalize_server_url"]="https://catalog.chemicalize.com";
+	$suppliers[$code]["urls"]["search"]=$urls["chemicalize_server_url"]."/v1/48cb00fd27694c7c8824bbd4c566177e/search";
+	$suppliers[$code]["urls"]["search_referer"]=$urls["chemicalize_server_url"]."/v1/48cb00fd27694c7c8824bbd4c566177e/editor.html";
 	$suppliers[$code]["urls"]["detail"]=$urls["server"]."/code/";
 	$suppliers[$code]["urls"]["startPage"]=$urls["server"];
 '),
@@ -61,10 +63,18 @@ $GLOBALS["suppliers"][$code]=array(
 	return $self["procDetail"]($response,$catNo);
 '),
 "getHitlist" => create_function('$searchText,$filter,$mode="ct",$paramHash=array()',getFunctionHeader().'
-	$url=$urls["search"].urlencode($searchText);
 	$my_http_options=$default_http_options;
 	$my_http_options["redirect"]=maxRedir;
-	$response=oe_http_get($url,$my_http_options);
+	$my_http_options["referer"]=$urls["search_referer"];
+	$my_http_options["mime"]="application/json; charset=utf-8";
+	$response=@oe_http_post_fields($urls["search"],json_encode(array(
+		"hitColor" => "#ff8000", 
+		"hitColoring" => "OFF", 
+		"limit" => "50", 
+		"searchType" => "FULL", 
+		"similarityThreshold" => "0.5", 
+		"structure" => $searchText
+	)),array(),$my_http_options);
 	if ($response==FALSE) {
 		return $noConnection;
 	}
@@ -128,14 +138,14 @@ $GLOBALS["suppliers"][$code]=array(
 		}
 		
 		list(,$amount,$amount_unit)=getRange(fixTags($cells[1]));
-		preg_match("/(?ims)^(\D+)\s*(\d.*)$/",fixTags($cells[2]),$price_data);
+		list(,$price,$currency)=getRange(trim(fixTags($cells[2])," *"));
 		
 		$result["price"][]=array(
 			"supplier" => $code, 
 			"amount" => $amount, 
 			"amount_unit" => strtolower($amount_unit), 
-			"price" => $price_data[2]+0.0, 
-			"currency" => fixCurrency($price_data[1]), 
+			"price" => $price+0.0, 
+			"currency" => fixCurrency($currency), 
 			"catNo" => $catNo, 
 			"beautifulCatNo" => fixTags($cells[0]), 
 		);
@@ -146,17 +156,22 @@ $GLOBALS["suppliers"][$code]=array(
 '),
 "procHitlist" => create_function('& $response',getFunctionHeader().'
 	$body=@$response->getBody();
-	cutRange($body,"class=\"content-main--inner\"","<footer");
-	if (strpos($body,"did not return any results")!==FALSE) {
-		return $noResults;
-	}
-	preg_match_all("/(?ims)class=\"product--info\".*?<\/a>.*?<a[^>]+href=[\'\"].*?:\/\/.*?\/([^\'\"\/]+)[\'\"][^>]*>(.*?)<\/a>.*?Catalog #\s*(.*?)\s.*?class=\"product--actions\"/",$body,$manyLines,PREG_SET_ORDER);
-	//~ print_r($manyLines);die();
+	$json=json_decode($body,true);
+//~ 	print_r($json);die();
 	$results=array();
-	
-	for ($b=0;$b<count($manyLines);$b++) {
-		$results[]=array("name" => fixTags($manyLines[$b][2]), "catNo" =>fixTags($manyLines[$b][1]), "beautifulCatNo" =>fixTags($manyLines[$b][3]), "supplierCode" => $code, );
+	$catNos=array();
+	if (count($json)) foreach ($json["results"] as $result) {
+		if (!in_array($result["productId"],$catNos)) {
+			$catNos[]=$result["productId"];
+			$results[]=array(
+				"name" => fixTags($result["properties"]["bezeichnung"]), 
+				"beautifulCatNo" => $result["productId"], 
+				"catNo" => $result["productId"], 
+				"supplierCode" => $code, 
+			);
+		}
 	}
+	
 	return $results;
 '),
 "getBestHit" => create_function('& $hitlist,$name=NULL','

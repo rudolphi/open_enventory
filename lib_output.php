@@ -174,13 +174,13 @@ function stereoStructureRelationship($smiles1,$stereo1,$smiles2,$stereo2) { // r
 		switch ($frags1[$a]) {
 		case "@":
 		case "@@":
-			$stereocenter++;
 			if (!in_array($frags2[$a],array("@","@@"))) {
 				return STEREO_UNDEFINED;
 			}
 			elseif ($frags1[$a]!=$frags2[$a]) {
 				$diff_stereo++;
 			}
+			$stereocenter++;
 		break;
 		default:
 			if ($frags1[$a]!=$frags2[$a]) {

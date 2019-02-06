@@ -43,12 +43,12 @@ case "print_label":
 	if (!pathSafe($path)) {
 		die("Not allowed");
 	}
-	echo loadJS(array("DYMO.Label.Framework.2.0.2.js","edit.js","safety.js",),"lib/").
+	echo loadJS(array("DYMO.Label.Framework.3.0.js","edit.js","safety.js",),"lib/").
 "<title>".s("print_dymo_label")."</title></head><body>".s("click_label_to_print")."<br/><img id=\"preview\" onClick=\"printLabel();\"/>".
 script."
 var printerName,label;
 function initPrinters() {
-	var labelXml=".json_encode(file_get_contents($path)).";
+	var labelXml=".json_encode(str_replace("\t","",file_get_contents($path))).";
 	printerName=getPrinterName();
 	label=dymo.label.framework.openLabelXml(labelXml);
 

@@ -136,7 +136,9 @@ function getImplHyd($valency,$bonds,$charge=0,$radical=0) {
 	else {
 		$retval=8-$valency-$bonds+$charge; // charge can be either positive or negative
 	}
-	//~ $retval=8-$valencies[$sym]-$bonds+$charge;
+	if ($retval<0 && $valency>0) {
+		$retval+=2;
+	}
 	if ($retval<0 || $retval>4 || $retval>$valency+1) {
 		return 0;
 	}

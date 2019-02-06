@@ -68,6 +68,7 @@ $GLOBALS["suppliers"][$code]=array(
 '),
 "getHitlist" => create_function('$searchText,$filter,$mode="ct",$paramHash=array()',getFunctionHeader().'
 	$my_http_options=$default_http_options;
+	$my_http_options["timeout"]=35;
 	$response=@oe_http_get($urls["search"].$searchText,$my_http_options);
 	
 	if ($response==FALSE) {

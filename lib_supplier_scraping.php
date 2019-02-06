@@ -98,7 +98,7 @@ $addInfo=array(
 	array("VWR",15), 
 	array("Strem",12), 
 ); // Abfragereihenfolge Details mit Limits
-$strSearch=array("cactus","NIST","emol"); // Reihenfolge Struktursuche
+$strSearch=array("cactus","pubchem","NIST","emol"); // Reihenfolge Struktursuche
 
 $simpleExtSearch=array("NIST","emol");
 

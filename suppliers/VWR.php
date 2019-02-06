@@ -38,9 +38,7 @@ $GLOBALS["suppliers"][$code]=array(
 	$suppliers[$code]["urls"]["server"]="https://de.vwr.com"; // startPage
 	$suppliers[$code]["urls"]["init"]=$urls["server"]."/store/"; // get cookies and _dynSessConf
 	$suppliers[$code]["urls"]["search_form"]=$urls["server"]."/store/search/searchAdv.jsp?tabId=advSearch";
-	$suppliers[$code]["urls"]["search"]=$urls["server"]."/store/search/searchAdv.jsp?_DARGS=/store/search/searchAdvGW.jsp.form2";
-	$suppliers[$code]["urls"]["switch_per_page"]=$urls["server"]."/store/search/searchResultList.jsp?_DARGS=/store/search/searchResultListGW.jsp.1_AF&_dynSessConf=";
-	$suppliers[$code]["urls"]["switch_to_list"]=$urls["server"]."/store/search/searchResultList.jsp?_DARGS=/store/search/searchResultListGW.jsp_AF&_dynSessConf=";
+	$suppliers[$code]["urls"]["search"]=$urls["server"]."/store/product?view=list&pageSize=64&";
 	$suppliers[$code]["urls"]["detail"]=$urls["server"]."/store/catalog/product.jsp?catalog_number=";
 	$suppliers[$code]["urls"]["startPage"]=$urls["server"];
 '),
@@ -110,71 +108,20 @@ $GLOBALS["suppliers"][$code]=array(
 	return $self["procDetail"]($response,$catNo);
 '),
 "getHitlist" => create_function('$searchText,$filter,$mode="ct",$paramHash=array()',getFunctionHeader().'
+	$url=$urls["search"];
 	if ($filter=="cas_nr") {
-		$cas_nr=$searchText;
-		$searchText="";
+		$url.="casNum=";
 	}
 	elseif ($filter=="emp_formula") {
-		$emp_formula=$searchText;
-		$searchText="";
+		$url.="chemFormula=";
+	} else {
+		$url.="keyword=";
 	}
+	$url.=urlencode($searchText);
 	$my_http_options=$default_http_options;
 	
-	// get cookies and _dynSessConf first
-	$response=oe_http_get($urls["init"],$my_http_options);
-	if ($response==FALSE) {
-		return $noConnection;
-	}
-	$body=utf8_encode(@$response->getBody());
-	$my_http_options["referer"]=$urls["search_form"];
-	$my_http_options["cookies"]=oe_get_cookies($response);
-	$my_http_options["redirect"]=3;
-	$nvps=parseNameValuePairs($body);
-	$_SESSION["supplier_settings"][$code]["_dynSessConf"]=$nvps["_dynSessConf"];
+	$response=oe_http_get($url,$my_http_options);
 	
-	$response=@oe_http_post_fields($urls["search"],array(
-		"/vwr/search/SearchFormHandler.CASNumber" => $cas_nr, 
-		"/vwr/search/SearchFormHandler.advSearch" => "Suchen", 
-		"/vwr/search/SearchFormHandler.catalogNumber" => "", 
-		"/vwr/search/SearchFormHandler.chemicalFormula" => $emp_formula, 
-		"/vwr/search/SearchFormHandler.chemicalName" => $searchText, 
-		"/vwr/search/SearchFormHandler.currentView" => "ADV", 
-		"/vwr/search/SearchFormHandler.keyword" => "", 
-		"/vwr/search/SearchFormHandler.mDLNumber" => "", 
-		"/vwr/search/SearchFormHandler.merckIndexNumber" => "", 
-		"/vwr/search/SearchFormHandler.molecularWeight" => "",
-		"/vwr/search/SearchFormHandler.supplierName" => "",
-		"_D:/vwr/search/SearchFormHandler.CASNumber" => "",
-		"_D:/vwr/search/SearchFormHandler.advSearch" => "",
-		"_D:/vwr/search/SearchFormHandler.catalogNumber" => "",
-		"_D:/vwr/search/SearchFormHandler.chemicalFormula" => "",
-		"_D:/vwr/search/SearchFormHandler.chemicalName" => "",
-		"_D:/vwr/search/SearchFormHandler.currentView" => "",
-		"_D:/vwr/search/SearchFormHandler.keyword" => "",
-		"_D:/vwr/search/SearchFormHandler.mDLNumber" => "",
-		"_D:/vwr/search/SearchFormHandler.merckIndexNumber" => "",
-		"_D:/vwr/search/SearchFormHandler.molecularWeight" => "",
-		"_D:/vwr/search/SearchFormHandler.supplierName" => "",
-		"_DARGS" => "/store/search/searchAdvGW.jsp.form2",
-		"_dynSessConf" => $nvps["_dynSessConf"],
-		"_dyncharset" => "UTF-8"
-	),array(),$my_http_options);
-	
-	if ($response==FALSE) {
-		return $noConnection;
-	}
-	//~ var_dump($nvps);
-	//~ var_dump($my_http_options["cookies"]);
-	//~ die($body."XXXXXXXXXXXXXXX".$response->getBody());
-	
-	// switch per page
-	$response=oe_http_get($urls["switch_per_page"].$nvps["_dynSessConf"]."&pageRows=64&_D%3Asfh_setpagerows=+&sfh_setpagerows=submit",$my_http_options);
-	if ($response==FALSE) {
-		return $noConnection;
-	}
-	
-	// switch to list
-	$response=oe_http_get($urls["switch_to_list"].$nvps["_dynSessConf"]."&_D%3Asfh_skuSearch=+&sfh_skuSearch=submit",$my_http_options);
 	if ($response==FALSE) {
 		return $noConnection;
 	}
@@ -188,7 +135,7 @@ $GLOBALS["suppliers"][$code]=array(
 		return $noConnection;
 	}
 	
-	if (preg_match("/(?ims)<div[^>]*class=\"substanceDescription\"[^>]*>(.*?)<\/div>/",$body,$name_data)) {
+	if (preg_match("/(?ims)id=\"product_name\"[^>]*>(.*?)<\/span>/",$body,$name_data)) {
 		$result["molecule_names_array"][]=fixTags($name_data[1]);
 	}
 	
@@ -227,6 +174,7 @@ $GLOBALS["suppliers"][$code]=array(
 					}
 				break;
 				case "Melting Pt":
+				case "Schmelzpunkt":
 					list($result["mp_low"],$result["mp_high"])=getRange($value);
 				break;
 				case "Density":
@@ -234,6 +182,8 @@ $GLOBALS["suppliers"][$code]=array(
 					$result["density_20"]=getNumber($value);
 				break;
 				case "Flash Pt":
+				case "Flash-Pt":
+				case "Flammpunkt":
 					$result["molecule_property"][]=array("class" => "FP", "source" => $code, "value_high" => $value+0.0, "unit" => "°C");
 				break;
 				case "UN":
@@ -339,54 +289,57 @@ $GLOBALS["suppliers"][$code]=array(
 	list(,$entry["price"][0]["price"],$entry["price"][0]["currency"])=getRange(fixCurrency(trimNbsp($priceStr)));
 '),
 "procHitlist" => create_function('& $response',getFunctionHeader().'
-	$body=str_replace("&nbsp;"," ",$response->getBody());
-	cutRange($body,"id=\"items\"","class=\"clearsp\"");
-	$body=str_replace(array("\t","\n","\r"),"",$body);
-	
-	// find price call
-	if (preg_match("/(?ims)\'(\/store\/services\/pricing\/json\/skuPricingAndAvailability.*?profileLocale=.*?)\'/",$body,$priceCall)) {
-		$response=oe_http_get($urls["server"].preg_replace("/(?ims)\'\s*\+\s*\'/","",$priceCall[1]),$my_http_options);
-		if ($response) {
-			$priceData=json_decode(@$response->getBody());
-		}
-	}
-	
-	$result=array();
-	preg_match_all("/(?ims)<tr[^>]*>.*?<a[^>]+href=\"\/store\/catalog\/product\.jsp\?catalog_number=([^\"]+)\".*?<img.*?<\/a>(.*?)<\/a>(.*?)<option[^>]+value=\"([^\"]+)\"/",$body,$manyLines,PREG_SET_ORDER);
-	for ($b=0;$b<count($manyLines);$b++) {
-		$result[$b]=$self["getResult"]($manyLines[$b][2]);
-		$result[$b]["catNo"]=fixTags($manyLines[$b][1]);
-		$result[$b]["supplierCode"]=$code;
-		
-		if (count($priceData)) {
-			$skuID=$manyLines[$b][4];
-			foreach ($priceData as $idx => $priceEntry) {
-				if ($priceEntry->skuId==$skuID) {
-					$self["applyPrice"]($result[$b], ifempty($priceEntry->contractPrice,$priceEntry->salePrice));
-					break;
-				}
+	$body=$response->getBody();
+	if (strpos($body,"did not match any products")===FALSE) {
+		// find price call
+		if (preg_match("/(?ims)\'(\/store\/services\/pricing\/json\/skuPricingAndAvailability.*?profileLocale=.*?)\'/",$body,$priceCall)) {
+			$response=oe_http_get($urls["server"].preg_replace("/(?ims)\'\s*\+\s*\'/","",$priceCall[1]),$my_http_options);
+			if ($response) {
+				$priceData=json_decode(@$response->getBody());
 			}
 		}
 		
-		if (preg_match_all("/(?ims)<tr.*?<\/tr>/",$manyLines[$b][3],$subLines,PREG_PATTERN_ORDER)) {
-			$subLines=$subLines[0];
-			foreach ($subLines as $subLine) {
-				preg_match_all("/(?ims)<td.*?<\/td>/",$subLine,$cells,PREG_PATTERN_ORDER);
-				$cells=$cells[0];
-				
-				if (count($cells)<2) {
-					continue;
+		$body=str_replace("&nbsp;"," ",$body);
+		cutRange($body,"id=\"items\"","class=\"clearsp\"");
+		$body=str_replace(array("\t","\n","\r"),"",$body);
+		
+		$result=array();
+		preg_match_all("/(?ims)<tr[^>]*>.*?<a[^>]+href=\"\/store\/catalog\/product\.jsp\?catalog_number=([^\"]+)\".*?<img.*?<\/a>(.*?)<\/a>(.*?)<option[^>]+value=\"([^\"]+)\"/",$body,$manyLines,PREG_SET_ORDER);
+		for ($b=0;$b<count($manyLines);$b++) {
+			$result[$b]=$self["getResult"]($manyLines[$b][2]);
+			$result[$b]["catNo"]=fixTags($manyLines[$b][1]);
+			$result[$b]["supplierCode"]=$code;
+			
+			if (count($priceData)) {
+				$skuID=$manyLines[$b][4];
+				foreach ($priceData as $idx => $priceEntry) {
+					if ($priceEntry->skuId==$skuID) {
+						$self["applyPrice"]($result[$b], ifempty($priceEntry->contractPrice,$priceEntry->salePrice));
+						break;
+					}
 				}
-				
-				$name=fixTags($cells[0]);
-				if ($name=="Artikel-Nr:") {
-					$result[$b]["beautifulCatNo"]=fixTags($cells[1]);
+			}
+			
+			if (preg_match_all("/(?ims)<tr.*?<\/tr>/",$manyLines[$b][3],$subLines,PREG_PATTERN_ORDER)) {
+				$subLines=$subLines[0];
+				foreach ($subLines as $subLine) {
+					preg_match_all("/(?ims)<td.*?<\/td>/",$subLine,$cells,PREG_PATTERN_ORDER);
+					$cells=$cells[0];
+					
+					if (count($cells)<2) {
+						continue;
+					}
+					
+					$name=fixTags($cells[0]);
+					if ($name=="Artikel-Nr:") {
+						$result[$b]["beautifulCatNo"]=fixTags($cells[1]);
+					}
 				}
 			}
 		}
+		// print_r($result);
+		return $result;
 	}
-	// print_r($result);
-	return $result;
 '),
 "getBestHit" => create_function('& $hitlist,$name=NULL','
 	if (count($hitlist)>0) {

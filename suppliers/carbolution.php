@@ -42,9 +42,9 @@ $GLOBALS["suppliers"][$code]=array(
 	),
 
 "init" => create_function('',getFunctionHeader().'
-	$suppliers[$code]["urls"]["server"]="http://www.carbolution-chemicals.de"; // startPage
-	$suppliers[$code]["urls"]["search"]=$urls["server"]."/shop/advanced_search_result.php?keywords=";
-	$suppliers[$code]["urls"]["detail"]=$urls["server"]."/shop/product_info.php?products_id=";
+	$suppliers[$code]["urls"]["server"]="https://www.carbolution.de"; // startPage
+	$suppliers[$code]["urls"]["search"]=$urls["server"]."/advanced_search_result.php?keywords=";
+	$suppliers[$code]["urls"]["detail"]=$urls["server"]."/product_info.php?products_id=";
 	$suppliers[$code]["urls"]["startPage"]=$urls["server"];
 '),
 "requestResultList" => create_function('$query_obj',getFunctionHeader().'
@@ -73,7 +73,11 @@ $GLOBALS["suppliers"][$code]=array(
 	return $self["procDetail"]($response,$catNo);
 '),
 "getHitlist" => create_function('$searchText,$filter,$mode="ct",$paramHash=array()',getFunctionHeader().'
-	$url=$urls["search"].urlencode($searchText);
+	$url=$urls["search"];
+	if ($filter=="cas_nr" || $mode=="ex" || $mode=="sw") {
+		$url.=">";
+	}
+	$url.=urlencode($searchText);
 	$my_http_options=$default_http_options;
 	$my_http_options["redirect"]=maxRedir;
 	$response=oe_http_get($url,$my_http_options);
@@ -83,185 +87,135 @@ $GLOBALS["suppliers"][$code]=array(
 
 	return $self["procHitlist"]($response);
 '),
-"add_safety_clause" => create_function('& $clauses,$prefix,$text',getFunctionHeader().'
-	$text=trim(strip_tags($text),$self["stripChars"]);
-	
-	if ($text!="" && substr($text,0,1)==$prefix) {
-		$firstSpc=stripos($text," ");
-		if ($firstSpc===FALSE) {
-			$text=substr($text,1);
+"getClauses" => create_function('$html,$type','
+	$clauses=array();
+	$rows=explode("</div>",$html);
+	if (count($rows)) foreach ($rows as $row) {
+		$row=fixTags($row);
+		if (cutRange($row,$type," ",false)
+			&& !isEmptyStr($row)) {
+			$clauses[]=$row;
 		}
-		else {
-			$text=substr($text,1,$firstSpc-1);
-		}
-		$clauses[]=$text;
 	}
+	
+	return str_replace(array(" ",$type,),"",implode("-",$clauses));
 '),
 "procDetail" => create_function('& $response,$catNo=""',getFunctionHeader().'
 	$body=utf8_decode(@$response->getBody());
-	if (preg_match("/(?ims)class=\"contentsTopics\"[^>]*>(.*)Vielleicht interessieren Sie sich auch/",$body,$cut)) {
-		$body=$cut[1];
+	if (preg_match("/(?ims)<div [^>]*class=\"[^\"]*shop-items[^\"]*\".*<footer/",$body,$cut)) {
+		$body=$cut[0];
 	}
-	$body=str_replace(array("&nbsp;","&ndash;","<div id=\"PRODUKT_BESCHREIBUNG\">"),array(" ","-",""),$body);
-	$elements=explode("</table>",$body);
+	$body=str_replace(array("&nbsp;","&ndash;","&#8211;"),array(" ","-","-"),$body);
 	
-	if (count($elements)>=5) {
-		$result=$self["procHeadline"]($elements[0]);
-		$result["molecule_names_array"][]=$result["name"];
-		$body=implode("",array_slice($elements,4));
-		preg_match_all("/(?ims)<(td|h1|div)[^>]*>(.*?)<\/\\\\1>/",$body,$cells,PREG_PATTERN_ORDER);
-		$cells=$cells[2];
-		//~ var_dump($cells);die($body);
-		
-		$safety_h=array();
-		$safety_p=array();
-		if (count($cells)) foreach ($cells as $cell) {
-			$current=trim(strip_tags($cell),$self["stripChars"]);
-			
-			switch($current) {
-			case "Identifikation":
-			case "Transport (ADR)":
-				$phase=0;
-			break;
-			case "Synonyme":
-				$phase=1;
-			break;
-			case "Gefahrenhinweise":
-				$phase=2;
-			break;
-			case "Sicherheitshinweise":
-				$phase=3;
-			break;
-			default:
-				switch($phase) {
-				case 1:
-					$result["molecule_names_array"][]=substr($current,2);
-				break;
-				case 2:
-					$clauses=preg_split("/(?ims)<[^>]+>/",$cell);
-					if (count($clauses)) foreach ($clauses as $clause) {
-						$self["add_safety_clause"]($safety_h,"H",$clause);
-					}
-				break;
-				case 3:
-					$clauses=preg_split("/(?ims)<[^>]+>/",$cell);
-					if (count($clauses)) foreach ($clauses as $clause) {
-						$self["add_safety_clause"]($safety_p,"P",$clause);
-					}
-				break;
-				default:
-					if ($previous=="Piktogramm") {
-						preg_match_all("/(?ims)alt=\"([^\"]*)\"/",$cell,$ghs,PREG_PATTERN_ORDER);
-						$result["safety_sym_ghs"]=implode(",",$ghs[1]);
-					}
-					elseif ($current!="") {
-						switch($previous) {
-						case "CAS":
-							$result["cas_nr"]=$current;
-						break;
-						case "Summenformel":
-							$result["emp_formula"]=$current;
-						break;
-						case "Schmelzpunkt":
-							list($result["mp_low"],$result["mp_high"])=getRange($current);
-						break;
-						case "Siedepunkt":
-							list($result["bp_low"],$result["bp_high"])=getRange($current);
-						break;
-						case "Dichte":
-							$result["density_20"]=getNumber($current);
-						break;
-						case "Signalwort":
-							$result["safety_text"]=$current;
-						break;
-						default:
-							if ($previous=="Sicherheitsdatenblatt" || $current=="Sicherheitsdatenblatt") {
-								// German only
-								if (preg_match("/(?ims)<a[^>]*href=\"([^\"]*)\"[^>]*>/",$cell,$msds_data)) {
-									$result["alt_default_safety_sheet"]="";
-									$result["alt_default_safety_sheet_url"]="-".$msds_data[1];
-									$result["alt_default_safety_sheet_by"]=$self["name"];
-								}
-							}
-							elseif (strpos($previous,"lmasse")!==FALSE) {
-								$result["mw"]=$current;
-							}
-						}
-					}
-				}
-			}
-			$previous=$current;
-		}
-		$result["safety_h"]=implode("-",$safety_h);
-		$result["safety_p"]=implode("-",$safety_p);
+	$result=array();
+	$result["molecule_names_array"]=array();
+	$result["molecule_property"]=array();
+	$result["catNo"]=$catNo; // may be overwritten later
+	
+	preg_match("/(?ims)<h3[^>]*>(.*?)<\/h3>/",$body,$name_data);
+	$result["molecule_names_array"]=array(fixTags($name_data[1]));
+	
+	if (preg_match("/(?ims)<p>Art\.Nr\.:\s*(.*?)<\/p>/",$body,$match)) {
+		$result["catNo"]=fixTags($match[1]);
 	}
+	
+	preg_match_all("/(?ims)<tr[^>]*>(.*?)<\/tr>/",$body,$lines,PREG_PATTERN_ORDER);
+	$lines=$lines[1];
+	if (count($lines)) foreach ($lines as $line) {
+		preg_match_all("/(?ims)<td.*?<\/td>/",$line,$cells,PREG_PATTERN_ORDER);
+		$cells=$cells[0];
+		
+		if (count($cells)<2) {
+			continue;
+		}
+		
+		$name=fixTags($cells[0]);
+		$value=fixTags($cells[1]);
+		
+		if ($name=="CAS") {
+			$result["cas_nr"]=$value;
+		}
+		elseif ($name=="Summenformel") {
+			$result["emp_formula"]=$value;
+		}
+		elseif (strpos($name,"lmasse")!==FALSE) {
+			$result["mw"]=$value;
+		}
+		elseif ($name=="Dichte") {
+			$result["density_20"]=getNumber($value);
+		}
+		elseif ($name=="Schmelzpunkt") {
+			list($result["mp_low"],$result["mp_high"])=getRange($value);
+		}
+		elseif ($name=="Siedepunkt") {
+			list($result["bp_low"],$result["bp_high"])=getRange($value);
+		}
+		elseif ($name=="Signalwort") {
+			$result["safety_text"]=$value;
+		}
+		elseif ($name=="Sicherheitsdatenblatt") {
+			// only in German
+			if (preg_match("/(?ims)<a[^>]*href=\"([^\"]*)\"[^>]*>/",$cells[1],$msds)) {
+				$result["alt_default_safety_sheet"]="";
+				$result["alt_default_safety_sheet_url"]="-".htmlspecialchars_decode($msds[1]);
+				$result["alt_default_safety_sheet_by"]=$self["name"];
+			}
+		}
+		elseif ($name=="Piktogramm") {
+			preg_match_all("/(?ims)alt=\"([^\"]*)\"/",$cells[1],$htmlEntries,PREG_PATTERN_ORDER);
+			$result["safety_sym_ghs"]=@join(",",$htmlEntries[1]);
+		}
+		elseif ($name=="Gefahrenhinweise") {
+			$result["safety_h"]=$self["getClauses"]($cells[1], "H");
+		}
+		elseif ($name=="Sicherheitshinweise") {
+			$result["safety_p"]=$self["getClauses"]($cells[1], "P");
+		}
+	}
+	
+	// prices
+	
 	
 	$result["supplierCode"]=$code;
 	$result["catNo"]=$catNo;
 	return $result;
 '),
-"procHeadline" => create_function('& $headline_html',getFunctionHeader().'
-	$headCells=explode("</span>",$headline_html);
-	if (count($headCells)>=2) {
-		preg_match("/(?ims)<a[^>]*href=\".*?products_id=([^&\"]*).*?\"[^>]*>/",$headCells[0],$intCatNo_data);
-		preg_match("/(?ims)\(Produkt-Nr\.: (.*?)\)/",$headCells[2],$catNo_data);
-		
-		return array(
-			"name" => trim(strip_tags($headCells[0]),$self["stripChars"]),
-			"beautifulCatNo" => $catNo_data[1],
-			"catNo" => $intCatNo_data[1],
-			"supplierCode" => $code, 
-		);
-	}
-'),
 "procHitlist" => create_function('& $response',getFunctionHeader().'
 	$body=utf8_decode(@$response->getBody());
-	if (strpos($body,"Leider ergab Ihre Suche keine Treffer")!==FALSE) {
+	if (strpos($body,"Leider haben wir das Produkt")!==FALSE) {
 		return $noResults;
 	}
+	cutRange($body,"<div class=\"shop-items","<footer");
+//~ 	die($body);
 	
 	$result=array();
-	preg_match_all("/(?ims)<article[^>]*>.*?<a[^>]*href=\".*?products_id=([^&\"]*).*?\"[^>]*>(.*?)<\/a>.*?\(Produkt-Nr\.: (.*?)\).*?(<table.*?)<\/article>/",$body,$htmlEntries,PREG_SET_ORDER);
+	preg_match_all("/(?ims)<a[^>]*href=\".*?products_id=([^&\"]*).*?\"[^>]*>.*?<img[^>]+alt=\"([^\"]*)\".*?<h(\d)[^>]*>(.*?)<\/h\\\\3>(.*?)<a/",$body,$htmlEntries,PREG_SET_ORDER);
 //~ 	print_r($htmlEntries);die();
 	for ($b=0;$b<count($htmlEntries);$b++) {
+		preg_match_all("/(?ims)>Produktnummer: (.*?) Menge: (.*?) Preis:  (.*?) Lieferzeit: (.*?)</",$htmlEntries[$b][5],$price_matches,PREG_SET_ORDER);
+		$prices=array();
+		$catNo=fixTags($price_match[1]);
+		for ($c=0;$c<count($price_matches);$c++) {
+			$price_match=$price_matches[$c];
+			list(,$amount,$amount_unit)=getRange(fixTags($price_match[2]));
+			list(,$price,$currency)=getRange(fixTags($price_match[3]));
+			$prices[]=array(
+				"supplierCode" => $code, 
+				"amount" => $amount, 
+				"amount_unit" => strtolower($amount_unit), 
+				"price" => $price+0.0, 
+				"currency" => fixCurrency($currency), 
+				"beautifulCatNo" => $catNo, 
+				"addInfo" => fixTags($price_match[4]), 
+			);
+		}
 		$result[$b]=array(
 			"supplierCode" => $code, 
 			"name" => fixTags($htmlEntries[$b][2]),
-			"beautifulCatNo" => fixTags($htmlEntries[$b][3]),
 			"catNo" => fixTags($htmlEntries[$b][1]),
-			"price" => array()
+			"beautifulCatNo" => $catNo, 
+			"price" => $prices
 		);
-		
-		preg_match_all("/(?ims)<tr.*?<\/tr>/",$htmlEntries[$b][4],$manyLines,PREG_PATTERN_ORDER);
-		$manyLines=$manyLines[0];
-		//~ var_dump($manyLines);die();
-		
-		for ($c=0;$c<count($manyLines);$c++) {
-			preg_match_all("/(?ims)<td.*?<\/td>/",$manyLines[$c],$cells,PREG_PATTERN_ORDER);
-			$cells=$cells[0];
-			
-			if (count($cells)<3) {
-				continue;
-			}
-			
-			$cell1=fixTags($cells[0]);
-			if ($cell1=="Menge") {
-				continue;
-			}
-			
-			list(,$amount,$amount_unit)=getRange($cell1);
-			list(,$price,$currency)=getRange(fixTags($cells[1]));
-			
-			$result[$b]["price"][]=array(
-				"supplier" => $code, 
-				"beautifulCatNo" => $result[$b]["beautifulCatNo"],
-				"catNo" => $result[$b]["catNo"],
-				"amount" => $amount, 
-				"amount_unit" => $amount_unit, 
-				"price" => $price, 
-				"currency" => fixCurrency($currency), 
-			);
-		}
 	}
 //~ 	print_r($result);
 	return $result;

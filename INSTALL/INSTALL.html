@@ -252,11 +252,13 @@ Bitte führen Sie nach Abschluß der Serverinstallation noch ein paar notwendige
 
 <ol>
 <li>php.ini
-<pre>error_reporting  =  E_ALL & ~E_NOTICE (<span lang="en">otherwise some warnings being displayed will break the functionality</span><span lang="de">ansonsten werden Warnungen ausgegeben und das Programm funktioniert nicht mehr richtig</span>)
+<pre>error_reporting  =  E_ALL & ~E_WARNING  & ~E_NOTICE & ~E_STRICT & ~E_DEPRECATED (<span lang="en">otherwise some warnings being displayed will break the functionality</span><span lang="de">ansonsten werden Warnungen ausgegeben und das Programm funktioniert nicht mehr richtig</span>)
 safe_mode=Off
 magic_quotes_gpc=Off
 upload_max_filesize=64M # (<span lang="en">or higher</span><span lang="de">oder auch größer</span>)
-post_max_size=64M # (<span lang="en">or higher</span><span lang="de">oder auch größer</span>)</pre></li>
+post_max_size=64M # (<span lang="en">or higher</span><span lang="de">oder auch größer</span>)</pre>
+<span lang="en">If still warnings appear in the generated HTML code (breaking open enventory), you should set</span><span lang="de">Falls trotzdem noch Warnungen im generierten HTML-Code erscheinen (die open enventory unbrauchbar machen), dann setzen Sie bitte</span>:
+<pre>display_errors=Off # (<span lang="en">especially on</span><span lang="de">gilt speziell für</span> PHP 7+)</pre></li>
 
 <li><span lang="en">In the respective sections of</span><span lang="de">In den jeweiligen Abschnitten der</span> my.cnf<span class="os_win"> (<span lang="en">the filename may be my.ini in some cases</span><span lang="de">unter Umständen heißt die Datei auch my.ini</span>)</span>
 <pre>

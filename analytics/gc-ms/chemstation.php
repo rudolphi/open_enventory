@@ -114,7 +114,7 @@ class chemstation extends converter {
 		
 		// gets some data to read and calculates xydata
 		$NoPeaks=$this->readData($this->data, $decode_short, 2, $filePos+12);
-		$scale=$this->readData(substr($this->data,$filePos+16,2) & "\xc0\0", $decode_short, 4, 0); // \0\x03
+		$scale=$this->readData(substr($this->data,$filePos+16,2) & "\xc0\0", $decode_short, 4, 0) >> 14; // \0\x03
 		$mantissa=$this->readData(substr($this->data,$filePos+16,2) & "\x3f\xff", $decode_short, 4, 0); // \xff\xfc
 		$maxIntensity=$mantissa<<(3*$scale);
 		
@@ -122,7 +122,7 @@ class chemstation extends converter {
 		$filePos+=18;
 		for($i=0;$i<$NoPeaks;$i++) {
 			$cMass=$this->readData($this->data, $decode_short, 2, $filePos)/20;
-			$scale=$this->readData(substr($this->data,$filePos+2,2) & "\xc0\0", $decode_short, 4, 0); // \0\x03
+			$scale=$this->readData(substr($this->data,$filePos+2,2) & "\xc0\0", $decode_short, 4, 0) >> 14; // \0\x03
 			$mantissa=$this->readData(substr($this->data,$filePos+2,2) & "\x3f\xff", $decode_short, 4, 0); // \xff\xfc
 			$cIntensity=$mantissa<<(3*$scale);
 			if ($cIntensity>$maxIntensity) { // skip
