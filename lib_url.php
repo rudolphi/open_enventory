@@ -61,7 +61,9 @@ function getSelfRef($suppress=array(),$call_transparent_params=array()) {
 	//~ }
 	$retval="";
 	if (!in_array("~script~",$suppress)) {
-		$retval.=$_SERVER["SCRIPT_NAME"]."?";
+	    # trim away the leading slash of the URI as it causes trouble
+        # behind reverse proxies
+		$retval.=ltrim($_SERVER["SCRIPT_NAME"]."?", "/");
 	}
 	//~ if (!empty($_SESSION["sess_proof"]) && $_REQUEST["sess_proof"]!=$_SESSION["sess_proof"]) { // auto fix sess proof
 		//~ $_REQUEST["sess_proof"]=$_SESSION["sess_proof"];
