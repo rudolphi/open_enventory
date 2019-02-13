@@ -115,8 +115,10 @@ function getOtherDBInfo() {
 function checkDBLink($db_name,$username,$password) {
 	global $db,$db_server;
 	//~ echo $db_name."X".$username."Y".$password;
-	
-	$dbtest=@mysqli_connect($db_server,$username,$password);
+    # for some reason the setting is not properly distributed
+    $db_server = db_server;
+
+    $dbtest=@mysqli_connect($db_server,$username,$password);
 	if (!$dbtest) {
 		//~ echo "Could not connect to ".$db_server." using ".$username."/".$password."\n";
 		return false;
