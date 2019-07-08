@@ -66,7 +66,7 @@ function matchPathsRecursiveLoose(& $needle,& $haystackMolecule,$needlePath,$hay
 			//~ if (qualityDown($match_quality,BOND_MISMATCH_PRICE,$path_length,$paramHash)) return false;
 			$full_match=false;
 		}
-		elseif ($needle["bondsFromNeighbours"][ $lastNeedle ][ $prevNeedle ][ORIG_BOND_ORDER]+0.0!=$haystackMolecule["bondsFromNeighbours"][ $lastHaystack ][ $prevHaystack ][ORIG_BOND_ORDER]+0.0) { // not exactly matching
+		elseif (floatval($needle["bondsFromNeighbours"][ $lastNeedle ][ $prevNeedle ][ORIG_BOND_ORDER])!=floatval($haystackMolecule["bondsFromNeighbours"][ $lastHaystack ][ $prevHaystack ][ORIG_BOND_ORDER])) { // not exactly matching
 			qualityDown($match_quality,STRICT_BOND_MISMATCH_PRICE,$path_length,$paramHash);
 			//~ if (qualityDown($match_quality,STRICT_BOND_MISMATCH_PRICE,$path_length,$paramHash)) return false;
 			$full_match=false;

@@ -921,8 +921,8 @@ switch ($_REQUEST["desired_action"]) {
 		switch ($_REQUEST["save_settings"]) {
 		case "true":
 			// silently remove problematic users
-			mysqli_query($db,"DROP USER ''@'localhost';");
-			mysqli_query($db,"DROP USER ''@'%';");
+			mysqli_query($db,"DROP USER IF EXISTS ''@".php_server."';");
+			mysqli_query($db,"DROP USER IF EXISTS ''@'%';");
 			
 			// Schreibroutine
 			$list_int_name="db_cross";

@@ -29,45 +29,45 @@ along with open enventory.  If not, see <http://www.gnu.org/licenses/>.
 
 $scale=0.95;
 $prefix=$_REQUEST["prefix"];
-$start=$_REQUEST["start"]+0;
-$per_row=$_REQUEST["per_row"]+0;
+$start=intval($_REQUEST["start"]);
+$per_row=intval($_REQUEST["per_row"]);
 if ($per_row<1) {
 	$per_row=7;
 }
-$per_col=$_REQUEST["per_col"]+0;
+$per_col=intval($_REQUEST["per_col"]);
 if ($per_col<1) {
 	$per_col=27;
 }
 
 // 1st label
-$top_mm=$_REQUEST["top_mm"]+0.0;
-$left_mm=$_REQUEST["left_mm"]+0.0;
+$top_mm=floatval($_REQUEST["top_mm"]);
+$left_mm=floatval($_REQUEST["left_mm"]);
 
 // each label
-$down_mm=$_REQUEST["down_mm"]+0.0;
+$down_mm=floatval($_REQUEST["down_mm"]);
 if ($down_mm<0) {
 	$down_mm=3;
 }
 
-$right_mm=$_REQUEST["right_mm"]+0.0;
+$right_mm=floatval($_REQUEST["right_mm"]);
 if ($right_mm<0) {
 	$right_mm=27;
 }
 
-$barcode_height_mm=$_REQUEST["barcode_height_mm"]+0.0;
+$barcode_height_mm=floatval($_REQUEST["barcode_height_mm"]);
 if ($barcode_height_mm<=0) {
 	$barcode_height_mm=8.5; // 9.5;
 }
 
-$barcode_width_mm=$_REQUEST["barcode_width_mm"]+0.0;
+$barcode_width_mm=floatval($_REQUEST["barcode_width_mm"]);
 if ($barcode_width_mm<=0) {
 	$barcode_width_mm=25;
 }
 
 $format=$_REQUEST["format"];
 $down=($_REQUEST["down"]?true:false);
-// $xscale=$_REQUEST["xscale"]+0.0;
-// $yscale=$_REQUEST["yscale"]+0.0;
+// $xscale=floatval($_REQUEST["xscale"]);
+// $yscale=floatval($_REQUEST["yscale"]);
 
 echo "<table cellspacing=\"0\" cellpadding=\"0\" style=\"table-layout:fixed;border-collapse:collapse;border-spacing:0mm;top:".$top_mm."mm;left:".$left_mm."mm;border-width:0px\">";
 $num=$start;

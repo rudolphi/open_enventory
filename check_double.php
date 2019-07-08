@@ -67,7 +67,7 @@ list($fields,$hidden)=getFields($columns["molecule_double"]);
 $fields[]="links_double_smiles";
 list($res,$dataArray,$sort_hints)=handleQueryRequest(2);
 for ($a=0;$a<count($res);$a++) {
-	$res[$a]["double_count"]=$counts[ $res[$a]["molecule_id"] ]+0;
+	$res[$a]["double_count"]=intval($counts[ $res[$a]["molecule_id"] ]);
 }
 
 echo showAnchor(array("int_name" => "smiles_stereo", )).
@@ -88,7 +88,7 @@ list($fields,$hidden)=getFields($columns["molecule_double"]);
 $fields[]="links_double_cas";
 list($res,$dataArray,$sort_hints)=handleQueryRequest(2);
 for ($a=0;$a<count($res);$a++) {
-	$res[$a]["double_count"]=$counts[ $res[$a]["molecule_id"] ]+0;
+	$res[$a]["double_count"]=intval($counts[ $res[$a]["molecule_id"] ]);
 }
 
 echo showAnchor(array("int_name" => "cas_nr", )).

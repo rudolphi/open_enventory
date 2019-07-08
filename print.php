@@ -142,7 +142,7 @@ if ($_REQUEST["table"]=="reaction" && ($permissions & _lj_read_all)==0) {
 echo "<div id=\"additional\" style=\"width:".$_REQUEST["widthMM"]."mm\"></div>
 ".script."
 function go() {
-	opener.completePrint(self,".fixNull($_REQUEST["widthMM"]).",".fixNull($_REQUEST["heightMM"]).",".fixStr($_REQUEST["options"]).",".($flags+0).");
+	opener.completePrint(self,".fixNull($_REQUEST["widthMM"]).",".fixNull($_REQUEST["heightMM"]).",".fixStr($_REQUEST["options"]).",".intval($flags).");
 }
 
 function check() {

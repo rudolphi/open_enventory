@@ -380,7 +380,7 @@ function getImageLink($paramHash) {
 	if (!empty($paramHash["url"])) {
 		$retval.="<a href=".fixStr($paramHash["url"]).ifnotempty(" target=\"",$paramHash["target"],"\"").ifnotempty(" class=\"",$paramHash["a_class"],"\"").ifnotempty(" id=\"",$paramHash["a_id"],"\"").">";
 	}
-	$retval.=$paramHash["text1"]."<img src=".fixStr($paramHash["src"]).ifnotempty(" width=\"",$paramHash["w"],"\"").ifnotempty(" height=\"",$paramHash["h"],"\"")." border=\"".($paramHash["b"]+0)."\"";
+	$retval.=$paramHash["text1"]."<img src=".fixStr($paramHash["src"]).ifnotempty(" width=\"",$paramHash["w"],"\"").ifnotempty(" height=\"",$paramHash["h"],"\"")." border=\"".intval($paramHash["b"])."\"";
 	if (isset($paramHash["l"])) {
 		$retval.=getTooltip($paramHash["l"]);
 	}

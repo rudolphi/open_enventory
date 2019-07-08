@@ -131,7 +131,7 @@ if (count($disabled_db_names)) {
 
 echo "</div>".
 script."
-var numberSelected=".(getSelectionCount("chemical_storage")+0).";
+var numberSelected=".intval(getSelectionCount("chemical_storage")).";
 function updateNumberSelected() {
 	if (numberSelected>0) {
 		setiHTML(\"selectInfo\",\"".s("selected").": \"+numberSelected);

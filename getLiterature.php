@@ -30,7 +30,7 @@ require_once "lib_db_query.php";
 pageHeader(true,false);
 
 if (!empty($_REQUEST["literature_id"])) {
-	$db_id=$_REQUEST["db_id"]+0;
+	$db_id=intval($_REQUEST["db_id"]);
 	if (empty($db_id)) {
 		$db_id=-1;
 	}

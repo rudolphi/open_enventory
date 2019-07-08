@@ -118,7 +118,7 @@ parent.close();
 		if ($success==QUESTION) { // interaction
 			echo "if (confirm(".fixStr($message).")) {
 	// force unlock
-	self.location.href=\"".getSelfRef(array("refresh_data","goto_page"),array("db_id","pk"))."&force=true\";
+	self.location.href=\"?".getSelfRef(array("~script~","refresh_data","goto_page"),array("db_id","pk"))."&force=true\";
 }\n";
 		}
 		elseif ($success==SUCCESS) { // Datensatzsperre erfolgreich geholt
@@ -139,7 +139,7 @@ if (isset($_REQUEST["archive_entity"])) {
 			"flags" => QUERY_EDIT, 
 			"dbs" => -1, 
 		), 
-		array($_REQUEST["db_id"]+0 => array($_REQUEST["pk"]+0) )
+		array(intval($_REQUEST["db_id"]) => array(intval($_REQUEST["pk"])) )
 	);
 	$result["timestamp"]=time();
 	//~ print_r($result);die();

@@ -45,7 +45,7 @@ function getSafetyGif($strSym,$size=30) {
 function getSafetyFilename($text) {
 	global $arrSymURL;
 	$text=trim($text,"\xc2\a0");
-	$number=getNumber($text)+0;
+	$number=intval(getNumber($text));
 	if ($number) {
 		// GHS
 		return $arrSymURL[$number];

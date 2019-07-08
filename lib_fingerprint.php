@@ -248,7 +248,7 @@ function FPsub(& $fingerprint,& $molecule,$path,$paramHash=array()) {
 		for ($a=0;$a<count($shifts);$a++) {
 			$shift=$shifts[$a];
 			
-			$idx=floor($shift/BITS_PER_BLOCK)+0;
+			$idx=intval(floor($shift/BITS_PER_BLOCK));
 			$shift%=BITS_PER_BLOCK;
 			$fingerprint[$idx]|=(1 << $shift);
 		}
@@ -257,7 +257,7 @@ function FPsub(& $fingerprint,& $molecule,$path,$paramHash=array()) {
 		$shift=FP4single($molecule,$path);
 		if ($shift!=-1) {
 			$shift+=128;
-			$idx=floor($shift/BITS_PER_BLOCK)+0;
+			$idx=intval(floor($shift/BITS_PER_BLOCK));
 			$shift%=BITS_PER_BLOCK;
 			$fingerprint[$idx]|=(1 << $shift);
 		}
@@ -267,7 +267,7 @@ function FPsub(& $fingerprint,& $molecule,$path,$paramHash=array()) {
 		if ($shift!=-1) {
 			//~ $shift+=192;
 			$shift+=160;
-			$idx=floor($shift/BITS_PER_BLOCK)+0;
+			$idx=intval(floor($shift/BITS_PER_BLOCK));
 			$shift%=BITS_PER_BLOCK;
 			$fingerprint[$idx]|=(1 << $shift);
 		}
@@ -1321,7 +1321,7 @@ function calculateFingerprint(& $molecule,$paramHash=array()) {
 	//~ $max=-1; // 0xFFFFFFFF; // all 32 bit set
 	
 	// summenformel	
-	$molecule["fingerprints"][0]=getSumFingerprint($molecule)+0; // für substruktursuche die ersten 4 bit wegmaskieren (implizite Hs zählen nicht)
+	$molecule["fingerprints"][0]=intval(getSumFingerprint($molecule)); // für substruktursuche die ersten 4 bit wegmaskieren (implizite Hs zählen nicht)
 	// 31 bit
 	
 	if (empty($molecule["bondsFromNeighbours"])) { // no bonds
@@ -1356,7 +1356,7 @@ function calculateFingerprint(& $molecule,$paramHash=array()) {
 		foreach ($symbols as $sym) {
 			addToFingerprint($fingerprint,$shift,$sym,$molecule["ringtypes"][$sym]);
 		}
-		$molecule["fingerprints"][1]=$fingerprint+0;
+		$molecule["fingerprints"][1]=intval($fingerprint);
 		// 31 bit
 		$fingerprint=0;
 		$shift=0;
@@ -1388,7 +1388,7 @@ function calculateFingerprint(& $molecule,$paramHash=array()) {
 			addToFingerprint($fingerprint,$shift,$sym,$molecule["ringtypes"][$sym]);
 		}
 		// 31 bit
-		$molecule["fingerprints"][2]=$fingerprint+0;
+		$molecule["fingerprints"][2]=intval($fingerprint);
 	}
 
 	// Gruppen

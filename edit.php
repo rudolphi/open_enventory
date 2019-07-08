@@ -1014,7 +1014,7 @@ else {
 		getPrintMenu($baseTable).
 		script;
 
-	echo "readOnly=".($editMode+0).",editMode=".($editMode+0).";\n";
+	echo "readOnly=".intval($editMode).",editMode=".intval($editMode).";\n";
 	if ($editMode) { // Datensatz bearbeiten
 
 		// cache initial dataset
@@ -1025,7 +1025,7 @@ else {
 		}
 		
 		echo "
-gotoDataset(".($page+0).",false);
+gotoDataset(".intval($page).",false);
 focusInput(\"idx\");\n";
 
 		// cache the rest with 300 ms delay

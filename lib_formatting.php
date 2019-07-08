@@ -481,7 +481,7 @@ function checkEAN($barcode) {
 function getEANCheck($num,$len) {
 	$sum=10;
 	for ($a=1;$a<=$len;$a++) {
-		$digit=$num{$len-$a}+0;
+		$digit=intval($num{$len-$a});
 		if ($a % 2) {
 			$sum+=3*$digit;
 		}

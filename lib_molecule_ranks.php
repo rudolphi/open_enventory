@@ -112,14 +112,14 @@ function getAtomInvar(& $atom) {
 	// h: hbonds
 	// mmm: mass, 000 if natural
 	
-	return (
+	return intval(
 		$atom[NON_H_NEIGHBOURS]. // 1
 		str_pad($atom[NON_H_BONDS]*10,2,"0",STR_PAD_LEFT). // 2
 		str_pad($atom[ATOMIC_NUMBER],2,"0",STR_PAD_LEFT). // normally 2
 		getChargeInvar($atom[CHARGE]). // 2
 		$atom[H_NEIGHBOURS]. // 1
 		getMassInvar($atom[MASS]) // 3
-	)+0;
+	);
 }
 
 function performRanking(& $molecule) {
@@ -200,7 +200,7 @@ function addStereoToRank(& $molecule) {
 		}
 		
 		$lastRank=$atom[RANKS][ $rankCount-1 ];
-		$lastRank|=($atom["SMdblStereo"]+$atom["SMchirStereo"]+0); // dbl: 1,2, chiral: 4,8,pseudo: 16
+		$lastRank|=($atom["SMdblStereo"]+intval($atom["SMchirStereo"])); // dbl: 1,2, chiral: 4,8,pseudo: 16
 		$molecule["atoms"][$a][RANKS][]=$lastRank;
 		//~ $molecule["atoms"][$a][RANKS][$rankCount-1]=$lastRank;
 	}

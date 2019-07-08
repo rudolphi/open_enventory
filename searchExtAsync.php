@@ -40,7 +40,7 @@ var res=parent.$(\"results\");\n";
 $cache=readCache($_REQUEST["cached_query"]);
 // print_r($cache);
 if ($cache["supplier"]=="all") {
-	$step=$_REQUEST["step"]+0;
+	$step=intval($_REQUEST["step"]);
 }
 else {
 	$step=getStepFromSupplierCode($cache["supplier"]);

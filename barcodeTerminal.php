@@ -71,7 +71,7 @@ showCommFrame(array("name" => "edit", "debug" => $debug, ));
 
 echo getHelperTop()."
 <form id=\"barcodeAsyncForm\" action=\"barcodeTerminalAsync.php\" target=\"edit\" method=\"post\">";
-$async_fields=array("person_db_id","person_id","username","pk","desired_action","chemical_storage_conc","chemical_storage_conc_unit","actual_amount","amount","amount_unit","tmd","tmd_unit","storage_id","compartment","chemical_storage_barcode","chemical_storage_bilancing","barcode","history_entry");
+$async_fields=array("person_db_id","person_id","username","pk","desired_action","chemical_storage_conc","chemical_storage_conc_unit","actual_amount","amount","amount_unit","tmd","tmd_unit","storage_id","compartment","storage_permanent","chemical_storage_barcode","chemical_storage_bilancing","barcode","history_entry");
 foreach ($async_fields as $async_field) {
 	echo getAsyncField($async_field);
 }
@@ -112,6 +112,10 @@ require_once "lib_edit_chemical_storage.php";
 echo showCheck(array(
 		"int_name" => "inventarisation_mode", 
 		"onChange" => "inventarisationMode(); ", 
+		"noChangeEffect" => true, 
+	)). // onClick: Timeout auf 600 sec, nicht ausleihen/zurückgeben
+	showCheck(array(
+		"int_name" => "storage_permanent", 
 		"noChangeEffect" => true, 
 	)). // onClick: Timeout auf 600 sec, nicht ausleihen/zurückgeben
 	showChemicalStorageEditForm(array("text" => s("inventarisation"), "barcodeTerminal" => true, READONLY => false)).

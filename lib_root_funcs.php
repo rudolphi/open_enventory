@@ -115,10 +115,8 @@ function getOtherDBInfo() {
 function checkDBLink($db_name,$username,$password) {
 	global $db,$db_server;
 	//~ echo $db_name."X".$username."Y".$password;
-    # for some reason the setting is not properly distributed
-    $db_server = db_server;
-
-    $dbtest=@mysqli_connect($db_server,$username,$password);
+	
+	$dbtest=@mysqli_connect(db_server,$username,$password);
 	if (!$dbtest) {
 		//~ echo "Could not connect to ".$db_server." using ".$username."/".$password."\n";
 		return false;
@@ -180,7 +178,7 @@ function dropAllLinkUsernames($db_info,$keep_usernames=array()) {
 	$auto_users=getLinkUsernames(); // remaining ones, if any
 	for ($a=0;$a<count($auto_users);$a++) {
 		if (!in_array($auto_users[$a]["user"],$keep_usernames)) {
-			mysqli_query($db,"DROP USER ".fixStrSQL($auto_users[$a]["user"])."@".fixStrSQL($auto_users[$a]["host"]).";");
+			mysqli_query($db,"DROP USER IF EXISTS ".fixStrSQL($auto_users[$a]["user"])."@".fixStrSQL($auto_users[$a]["host"]).";");
 		}
 	}
 	mysqli_query($db,"FLUSH PRIVILEGES;");
@@ -503,8 +501,8 @@ function setupInitTables($db_name) { // requires root
 	}
 	
 	// silently remove problematic users
-	mysqli_query($db,"DROP USER ''@'localhost';");
-	mysqli_query($db,"DROP USER ''@'%';");
+	mysqli_query($db,"DROP USER IF EXISTS ''@'".php_server."';");
+	mysqli_query($db,"DROP USER IF EXISTS ''@'%';");
 	
 	mysqli_query($db,"CREATE DATABASE IF NOT EXISTS ".$db_name." CHARACTER SET ".CHARSET_TEXT." COLLATE ".COLLATE_TEXT.";") or die("Error creating database ".mysqli_error($db));
 	// CHARACTER SET utf8 COLLATE utf8_unicode_ci
@@ -565,7 +563,7 @@ function refreshUsers($createNew=true) {
 
 	// print_r($personen);
 
-	// benutzerrechte neu schreiben, kennwort = benutzername
+	// benutzerrechte neu schreiben, kennwort = benutzername, falls user nicht bekannt
 	if (count($personen)) foreach ($personen as $this_person) {
 		if (empty($this_person["username"]) || $db_user==$this_person["username"]) {
 			continue;
@@ -573,26 +571,34 @@ function refreshUsers($createNew=true) {
 		// create user
 		$remote_host=getRemoteHost($this_person["permissions"]);
 		$user=getFullUsername($this_person["username"],$remote_host);
+		
+		list($oldusername,$oldremote_host)=get_username_from_person_id($this_person["person_id"]);  // CHKN - if we want to update, we have to drop useres on old remote_host, not on new, as they should still be inexistant on the latter
+		if (empty($oldremote_host)) {
+			$oldremote_host="%";
+		}
+		$olduser=getFullUsername($oldusername,$oldremote_host);
+		
 		for ($a=0;$a<count($mysql_data);$a++) {
-			if ($mysql_data[$a]["user"]==$this_person["username"] && $mysql_data[$a]["host"]==$remote_host) {
+			if ($mysql_data[$a]["user"]==$oldusername && $mysql_data[$a]["host"]==$oldremote_host) {
 				$password=$mysql_data[$a]["password"];
 				break;
 			}
 		}
 		createViews();
-		mysqli_query($db,"REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$user.";");
+		mysqli_query($db,"REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$olduser.";");
 		$sql_query=array(
 			"FLUSH PRIVILEGES;", 
 		);
 		if ($createNew) {
-			mysqli_query($db,"DROP USER ".$user.";"); // result unimportant	
-			mysqli_query($db,"DROP VIEW  ".getSelfViewName($this_person["username"]).";"); // result unimportant	
+			mysqli_query($db,"DROP USER IF EXISTS ".$olduser.";"); // result unimportant	
+			mysqli_query($db,"DROP VIEW IF EXISTS ".getSelfViewName($oldusername).";"); // result unimportant	
 			if (empty($password)) {
-				$sql_query[]="CREATE USER ".$user." IDENTIFIED BY ".fixStrSQL($this_person["username"]).";"; // username is pwd,MUST be changed
+				$sql_query[]="CREATE USER IF NOT EXISTS ".$user." IDENTIFIED BY ".fixStrSQL($this_person["username"]).";"; // username is pwd,MUST be changed
 			}
 			else {
-				$sql_query[]="CREATE USER ".$user." IDENTIFIED BY PASSWORD ".fixStrSQL($password).";";
+				$sql_query[]="CREATE USER IF NOT EXISTS ".$user." IDENTIFIED BY PASSWORD ".fixStrSQL($password).";";
 			}
+			$sql_query[]="UPDATE person SET remote_host = '".$remote_host."' WHERE username = '".$this_person["username"]."';";  // CHKN - Updating the internal person table to have correct remote_host (as it sets the current remote_host as such)
 		}
 		// give permissions
 		$sql_query[]="REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$user.";";

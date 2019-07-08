@@ -337,6 +337,8 @@ if (!$no_access_to_labj) {
 // Daten für $owndata ins Formular holen
 arr_trans($settings,$own_data,$own_data_settings);
 
+unset($loginTargets["barcode_terminal"]); // do not offer to users
+
 // Customisation, Common, Molecule editing, Inventory, Lab journal, Analytics, Order system
 echo getFormElements(
 	array(

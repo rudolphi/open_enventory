@@ -810,7 +810,7 @@ function procSubquery($db_list,$table,$crit_table,$crit,$op,$vals) { // gibt ein
 	// special handling for certain columns
 	if ($crit=="chemical_storage_barcode" && startswith($vals[0],findBarcodePrefixForPk("chemical_storage"))) {
 		$crit="chemical_storage_id";
-		$vals[0]=substr($vals[0],1,strlen($vals[0])-2)+0;
+		$vals[0]=intval(substr($vals[0],1,strlen($vals[0])-2));
 	}
 	
 	// handling for special TYPES of columns and normal columns
@@ -829,7 +829,7 @@ function procSubquery($db_list,$table,$crit_table,$crit,$op,$vals) { // gibt ein
 		//~ $unitFactor=" AND ".$crit."_currency LIKE ".fixStrSQL($vals[1]);
 	}
 	elseif (in_array($op,$searchModes["num_unit"]) && !empty($vals[1])) { // normale Einheiten
-		// ($vals[0]+0.0)."*(SELECT unit_factor FROM units WHERE  unit_name LIKE BINARY ".fixStrSQL($vals[1]).")"
+		// floatval($vals[0])."*(SELECT unit_factor FROM units WHERE  unit_name LIKE BINARY ".fixStrSQL($vals[1]).")"
 		$unitFactor="*(SELECT unit_factor FROM units WHERE unit_name LIKE BINARY ".fixStrSQLSearch($vals[1])." LIMIT 1)";
 	}
 	//~ elseif (strpos($crit,"/")!==FALSE) { // split at / if exists
@@ -906,41 +906,41 @@ function procSubquery($db_list,$table,$crit_table,$crit,$op,$vals) { // gibt ein
 	break;
 	// numeric
 	case "ba": // not in list, only for printing persons' barcodes
-		multiConcat($subquery,"CAST(".$crit." & ".($vals[0]+0)." AS SIGNED INTEGER)=".($vals[0]+0));
+		multiConcat($subquery,"CAST(".$crit." & ".intval($vals[0])." AS SIGNED INTEGER)=".intval($vals[0]));
 	break;
 	case "eq":
 		if ($field_type=="range") {
-			multiConcat($subquery,"(".($vals[0]+0.0).$unitFactor." BETWEEN ".$low_name." AND ");
+			multiConcat($subquery,"(".floatval($vals[0]).$unitFactor." BETWEEN ".$low_name." AND ");
 			multiConcat($subquery,$crit);
 			multiConcat($subquery," OR (".$low_name." IS NULL AND ");
 			multiConcat($subquery,$crit);
-			multiConcat($subquery,"=".($vals[0]+0.0).$unitFactor."))");
+			multiConcat($subquery,"=".floatval($vals[0]).$unitFactor."))");
 		}
 		else {
 			multiConcat($subquery,$crit);
-			multiConcat($subquery,"=".($vals[0]+0.0).$unitFactor);
+			multiConcat($subquery,"=".floatval($vals[0]).$unitFactor);
 		}
 	break;
 	case "gt":
 		if ($field_type=="range") {
-			multiConcat($subquery,"(".$low_name.">".($vals[0]+0.0).$unitFactor." OR ");
+			multiConcat($subquery,"(".$low_name.">".floatval($vals[0]).$unitFactor." OR ");
 			multiConcat($subquery,$crit);
-			multiConcat($subquery,">".($vals[0]+0.0).$unitFactor.")");
+			multiConcat($subquery,">".floatval($vals[0]).$unitFactor.")");
 		}
 		else {
 			multiConcat($subquery,$crit);
-			multiConcat($subquery,">".($vals[0]+0.0).$unitFactor);
+			multiConcat($subquery,">".floatval($vals[0]).$unitFactor);
 		}
 	break;
 	case "lt":
 		if ($field_type=="range") {
-			multiConcat($subquery,"(".$low_name."<".($vals[0]+0.0).$unitFactor." OR ");
+			multiConcat($subquery,"(".$low_name."<".floatval($vals[0]).$unitFactor." OR ");
 			multiConcat($subquery,$crit);
-			multiConcat($subquery,"<".($vals[0]+0.0).$unitFactor.")");
+			multiConcat($subquery,"<".floatval($vals[0]).$unitFactor.")");
 		}
 		else {
 			multiConcat($subquery,$crit);
-			multiConcat($subquery,"<".($vals[0]+0.0).$unitFactor);
+			multiConcat($subquery,"<".floatval($vals[0]).$unitFactor);
 		}
 	break;
 	case "bt":
@@ -955,7 +955,7 @@ function procSubquery($db_list,$table,$crit_table,$crit,$op,$vals) { // gibt ein
 			$tolerance=0.05;
 		}
 		list($low,$high)=getRangeBorders("number",$vals[0],$tolerance);
-		$cond=" BETWEEN ".($low+0.0).$unitFactor." AND ".($high+0.0).$unitFactor;
+		$cond=" BETWEEN ".floatval($low).$unitFactor." AND ".floatval($high).$unitFactor;
 		if ($field_type=="range") {
 			multiConcat($subquery,"(".$low_name.$cond." OR ");
 			multiConcat($subquery,$crit);
@@ -1181,10 +1181,10 @@ function checkQueryPattern($pattern,$invalid_cond=array()) {
 function getFingerprintFilter(& $molecule,$table="",$ignoreMask=array()) {
 	for ($a=0;$a<13;$a++) {
 		if (isset($ignoreMask[$a])) {
-			$check=(($molecule["fingerprints"][$a]+0) & $ignoreMask[$a]);
+			$check=(intval($molecule["fingerprints"][$a]) & $ignoreMask[$a]);
 		}
 		else {
-			$check=($molecule["fingerprints"][$a]+0);
+			$check=intval($molecule["fingerprints"][$a]);
 		}
 		
 		if ($check!=0) { // save a lot of time
@@ -1203,13 +1203,13 @@ function getSimilarFilter(& $molecule,$table="") { // byref is faster as no copy
 }
 
 /* function getSimilarFilterNoBonds(& $molecule) { // byref is faster as no copy is needed
-	return "((mw >= ".($molecule["mw_noH"]+0)." OR mw IS NULL)".
-	" AND CAST(fingerprint1 & ".(($molecule["fingerprints"][0]+0) & -16)." AS SIGNED INTEGER)=".(($molecule["fingerprints"][0]+0) & -16).")"; // Summenformel
-	// " AND CAST(fingerprint2 & ".(($molecule["fingerprints"][1]+0) & 262143)." AS SIGNED INTEGER)=".(($molecule["fingerprints"][1]+0) & 262143).")"; // RingGRÖßEN
+	return "((mw >= ".intval($molecule["mw_noH"])." OR mw IS NULL)".
+	" AND CAST(fingerprint1 & ".(intval($molecule["fingerprints"][0]) & -16)." AS SIGNED INTEGER)=".(intval($molecule["fingerprints"][0]) & -16).")"; // Summenformel
+	// " AND CAST(fingerprint2 & ".(intval($molecule["fingerprints"][1]) & 262143)." AS SIGNED INTEGER)=".(intval($molecule["fingerprints"][1]) & 262143).")"; // RingGRÖßEN
 }
 
 function getSimilarFilterNoAtoms(& $molecule) { // byref is faster as no copy is needed
-	return "CAST(fingerprint2 & ".(($molecule["fingerprints"][1]+0) & 262143)." AS SIGNED INTEGER)=".(($molecule["fingerprints"][1]+0) & 262143); // RingGRÖßEN
+	return "CAST(fingerprint2 & ".(intval($molecule["fingerprints"][1]) & 262143)." AS SIGNED INTEGER)=".(intval($molecule["fingerprints"][1]) & 262143); // RingGRÖßEN
 }*/
 
 function getSumSimilarFilter(& $molecule,$table="") { // byref is faster as no copy is needed
@@ -1217,7 +1217,7 @@ function getSumSimilarFilter(& $molecule,$table="") { // byref is faster as no c
 		$table.=".";
 	}
 	return "(".$table."mw >= ".($molecule["mw"]-0.5).
-	" AND ".$table."fingerprint1 >= ".($molecule["fingerprints"][0]+0)." AND (".$table."fingerprint1 & ".($molecule["fingerprints"][0]+0).")=".($molecule["fingerprints"][0]+0).")";
+	" AND ".$table."fingerprint1 >= ".intval($molecule["fingerprints"][0])." AND (".$table."fingerprint1 & ".intval($molecule["fingerprints"][0]).")=".intval($molecule["fingerprints"][0]).")";
 }
 
 function getSubstructureFilter($db_list,$paramHash,& $molecule,$mode) { // returns array[db_id]="molecule_id IN(1,4,7,...)"
@@ -1280,7 +1280,7 @@ function getSubstructureFilter($db_list,$paramHash,& $molecule,$mode) { // retur
 	
 	if (in_array($mode,array("ia","ba","ib","su"))) { // Substruktursuche
 		
-		$no_proc=$g_settings["no_processors"]+0; // make int
+		$no_proc=intval($g_settings["no_processors"]); // make int
 		// min 500 Strukturen/Prozessor
 		//~ $no_proc=min($no_proc,ceil(count($db_results)/500));
 		$no_proc=min($no_proc,ceil($db_results["count"]/500));

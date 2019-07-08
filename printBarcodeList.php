@@ -93,7 +93,7 @@ case "helper": // no real table, the fill level commands instead
 			$num=$a-count($chemical_storage_levels);
 			if ($num<count($dataset_commands)) {
 				fillZero($num,3);
-				$res[]=array("num" => "04".$num, "text" => s($dataset_commands[$num+0]), );
+				$res[]=array("num" => "04".$num, "text" => s($dataset_commands[intval($num)]), );
 			}
 			else {
 				$res[]=array();

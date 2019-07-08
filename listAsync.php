@@ -79,7 +79,7 @@ case "borrow":
 			"limit" => 1, 
 		));
 		echo "parent.displayBorrow(".fixNull($_REQUEST["idx"]).",".
-			(empty($_REQUEST["borrowed_by_person_id"])+0).",".
+			intval(empty($_REQUEST["borrowed_by_person_id"])).",".
 			fixStr(formatPersonNameCommas($result)).");\n";
 	}
 break;

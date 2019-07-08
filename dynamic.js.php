@@ -52,7 +52,7 @@ method_aware_types=".json_encode($method_aware_types).";
 col_options=".json_encode($col_options).";
 analytical_data_priority=".json_encode($analytical_data_priority).";
 arrSymURL=".json_encode($arrSymURL).";
-var analytical_data_lines=".fixNull($analytical_data_lines).",analytical_data_cols=".fixNull($analytical_data_cols).",use_rs=".($g_settings["use_rs"]+0).",use_ghs=".($g_settings["use_ghs"]+0).";
+var analytical_data_lines=".fixNull($analytical_data_lines).",analytical_data_cols=".fixNull($analytical_data_cols).",use_rs=".intval($g_settings["use_rs"]).",use_ghs=".intval($g_settings["use_ghs"]).";
 func_groups=".json_encode($func_groups).";\n";
 
 echo "var std_smiles=".fixStr($settings["std_smiles"]).",person_id=".fixNull($person_id).";\n";
@@ -116,8 +116,8 @@ if (!is_numeric($decimals)) {
 }
 
 // applet part
-// ,isFF36=".(isFF36()+0)."
-echo "var own_address=".fixStr(getFormattedAdress($own_data)).",bar_height=".bar_height.",bar_width=".bar_width.",highlight_inputs=".(getSetting("highlight_inputs")+0).",ausgabe_name=".fixNull(ausgabe_name).",dispose_instead_of_delete=".(getSetting("dispose_instead_of_delete")+0).",keepStructures=".(getSetting("keep_structures")+0).",yield_digits=".yield_digits.",yield_mode=".yield_mode.",isMSIE=".(isMSIE()+0).",isFF1x=".(isFF1x()+0).",isFF3x=".(isFF3x()+0).",isChrome=".(isChrome()+0).",isSafari=".(isSafari()+0).",isOpera=".(isOpera()+0).",isMac=(navigator.appVersion.indexOf(\"Mac\")!=-1),molApplet=".fixStr(getAppletSetting("mol")).",rxnApplet=".fixStr(getAppletSetting("rxn")).";
+// ,isFF36=".intval(isFF36())."
+echo "var own_address=".fixStr(getFormattedAdress($own_data)).",bar_height=".bar_height.",bar_width=".bar_width.",highlight_inputs=".intval(getSetting("highlight_inputs")).",ausgabe_name=".fixNull(ausgabe_name).",dispose_instead_of_delete=".intval(getSetting("dispose_instead_of_delete")).",keepStructures=".intval(getSetting("keep_structures")).",yield_digits=".yield_digits.",yield_mode=".yield_mode.",isMSIE=".intval(isMSIE()).",isFF1x=".intval(isFF1x()).",isFF3x=".intval(isFF3x()).",isChrome=".intval(isChrome()).",isSafari=".intval(isSafari()).",isOpera=".intval(isOpera()).",isMac=(navigator.appVersion.indexOf(\"Mac\")!=-1),molApplet=".fixStr(getAppletSetting("mol")).",rxnApplet=".fixStr(getAppletSetting("rxn")).";
 
 function rxnRound(val) {
 	return round(val,".$decimals.",".$roundMode.");
