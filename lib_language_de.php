@@ -1430,6 +1430,7 @@ Das elektronische Inventarsystem zeigt Stoff- und Sicherheitsdaten aller Verbind
 	"version" => "Version", 
 	"versions" => "Versionen", 
 	"inventarisation_mode" => "Inventarisierungsmodus", 
+	"storage_permanent" => "Lager für alle folgenden Gebinde setzen", 
 	"no_session_data" => "Ungültige Sitzungsdaten", 
 	"sigle" => "Sigel",
 	"person_barcode" => "Barcode",

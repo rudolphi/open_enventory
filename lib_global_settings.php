@@ -53,7 +53,7 @@ $barcode_terminal_options=array(
 );
 
 // blocking mechanism for brute force attacks
-define("ban_duration",1800);
+define("ban_duration",180);
 define("login_max_retries",4);
 
 define("installPath",__DIR__."/");
@@ -79,16 +79,17 @@ define("rxn_small_gif_y",200); // Höhe GIF in pix */
 define("analytics_gif_x",600); // Breite GIF in pix
 define("analytics_gif_y",400); // Höhe GIF in pix
 define("defBgColor","#EDF0FF");
-define("default_per_page",10); // Standardwert Ergebnisse pro Seite
+define("default_per_page",100); // Standardwert Ergebnisse pro Seite
 define("async_per_page",10); // Standardwert Ergebnisse pro Seite - asynchrone
 define("molecules_per_async_page",3); // Standardwert Ergebnisse pro Seite - Moleküle asynchron
 define("molecule_names_by_lang",false); // Trennung der Molekülnamen nach Sprachen
-define("db_server",getenv("DB_SERVER") ?: "localhost");
-define("php_server",$_SERVER['SERVER_ADDR'] ?: "localhost");
+define("db_server","localhost");
+define("php_server","localhost"); // For IP-address use: $_SERVER['SERVER_ADDR'])
 define("db_system","MySQL");
 define("storage_engine","InnoDB"); // MyISAM or InnoDB
 define("archive_storage_engine","InnoDB"); // MyISAM or InnoDB
 define("autoTransaction",true);
+define("customization",""); // Customization to use: f.e.: ".sample" for use of "lib_customization.sample.php", and "" for "lib_customization.php"
 
 define("hash_algo","sha1");
 

@@ -51,7 +51,7 @@ function parseSAP($data) {
             //establish connections
             $pdoMpical = new PDO('mysql:host='.MPICAL_DB_HOST.';dbname=mpical', $db_user, $db_pw);
 
-            $pdoLager = new PDO('mysql:host=localhost;dbname=lager', $db_user, $db_pw);
+            $pdoLager = new PDO('mysql:host='.db_server.';dbname=lager', $db_user, $db_pw);
 
             //get cost centres
             $sql = "SELECT c.cost_centre, d.name \n"

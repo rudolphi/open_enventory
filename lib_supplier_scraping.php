@@ -50,7 +50,7 @@ function getFunctionHeader() {
 function getStepFromSupplierCode($code) {
 	global $steps,$suppliers;
 	if (is_numeric($code)) {
-		return $code+0;
+		return intval($code);
 	}
 	return array_search($code,$steps);
 }

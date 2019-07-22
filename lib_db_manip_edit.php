@@ -733,7 +733,7 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 			performEdit("molecule",$db_id,$dbObj);
 		}
 		
-		$add_multiple=$_REQUEST["add_multiple"]+0; // make number
+		$add_multiple=intval($_REQUEST["add_multiple"]); // make number
 		if ($add_multiple<1) {
 			$add_multiple=1;
 		}
@@ -745,7 +745,7 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 			getSDSSQL("alt_safety_sheet");
 		
 		if (defined("QDBS") && $_REQUEST["desired_action"]=="update") {
-			$conn=mysqli_connect("localhost",$_SESSION["user"],$_SESSION["password"],$_SESSION["db_name"]);
+			$conn=mysqli_connect(db_server,$_SESSION["user"],$_SESSION["password"],$_SESSION["db_name"]);
 			// $person replaced by $own_data, which is already there
 			
 			$ktsql="SELECT storage_id FROM chemical_storage where chemical_storage_id = ".fixNull($_REQUEST["chemical_storage_id"]).";";
@@ -1410,7 +1410,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 					continue;
 				}
 				$sql_query[]="INSERT INTO molecule_names(molecule_id,molecule_name,language_id,is_trivial_name,is_standard,molecule_names_secret) ".
-					"VALUES (".$pk.",".fixStrSQL(trim($name)).",".fixStrSQL(strip_tags($lang)).",".($is_trivial_name+0).",".fixNull($idx==0).",".fixNull($_REQUEST["molecule_secret"]).");"; // cmdINSERTsub
+					"VALUES (".$pk.",".fixStrSQL(trim($name)).",".fixStrSQL(strip_tags($lang)).",".intval($is_trivial_name).",".fixNull($idx==0).",".fixNull($_REQUEST["molecule_secret"]).");"; // cmdINSERTsub
 			}
 		}
 		//~ $result=performQueries($sql_query,$db); // FIX-ME brauchen wir das hier???
@@ -1785,7 +1785,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 			$same_person=($person_id==$pk); // if changing own stuff
 		}
 		
-		$current_username=fixStrSQL($_REQUEST["username"])."@".fixStrSQL($_REQUEST["remote_host"]);
+		$current_user=fixStrSQL($_REQUEST["username"])."@".fixStrSQL($_REQUEST["remote_host"]);  // CHKN - should this not be 'php_server' to be consistent?
 		
 		if (empty($pk)) { // create new user
 			
@@ -1810,13 +1810,13 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 			addChangeNotify($db_id,$dbObj,"message",$message_id);
 			
 			// delete remainders of an old user with this name
-			//~ $user=fixStrSQL($_REQUEST["username"])."@".fixStrSQL($_REQUEST["remote_host"]);
-			mysqli_query($db,"DROP USER ".$current_username.";"); // result unimportant
+			//~ $user=fixStrSQL($_REQUEST["username"])."@".fixStrSQL($_REQUEST["remote_host"]);  // CHKN - should this not be 'php_server' to be consistent?
+			mysqli_query($db,"DROP USER IF EXISTS ".$current_user.";"); // result unimportant
 			// FIXME
 			
 			$sql_query=array(
 				// Benutzer erstellen
-				"CREATE USER ".$current_username." IDENTIFIED BY ".fixStrSQL($_REQUEST["new_password"]).";",
+				"CREATE USER ".$current_user." IDENTIFIED BY ".fixStrSQL($_REQUEST["new_password"]).";",
 				// Begrüßungsnachricht
 				"INSERT INTO message_person (person_id,message_id) VALUES (".fixNull($pk).",".fixNull($message_id).");", // cmdINSERT
 			);
@@ -1835,15 +1835,15 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 			$userExists=usernameExists($oldusername); // if user table is not consistent
 			$sql_query=array();
 			// wenn anders, umbenennen
-			if ($oldusername!=$_REQUEST["username"] || strtolower($oldremote_host)!=strtolower($_REQUEST["remote_host"]) || !$userExists) { // Änderung
+			if ($oldusername!=$_REQUEST["username"] || strtolower($oldremote_host)!=strtolower($_REQUEST["remote_host"]) || !$userExists) { // Änderung  // CHKN - should this not be 'php_server' to be consistent?
 				if ($userExists) {
-					$sql_query[]="RENAME USER ".fixStrSQL($oldusername)."@".fixStrSQL($oldremote_host)." TO ".$current_username.";";
-					$sql_query[]="DROP VIEW ".getSelfViewName($oldusername).";";
+					$sql_query[]="RENAME USER ".fixStrSQL($oldusername)."@".fixStrSQL($oldremote_host)." TO ".$current_user.";";
+					$sql_query[]="DROP VIEW IF EXISTS".getSelfViewName($oldusername).";";
 				}
 				else {
-					$sql_query[]="CREATE USER ".$current_username." IDENTIFIED BY ".fixStrSQL($_REQUEST["new_password"]).";";
+					$sql_query[]="CREATE USER ".$current_user." IDENTIFIED BY ".fixStrSQL($_REQUEST["new_password"]).";";
 				}
-				$sql_query=arr_merge($sql_query,getSelfView($current_username,$_REQUEST["username"],$pk));
+				$sql_query=arr_merge($sql_query,getSelfView($current_user,$_REQUEST["username"],$pk));
 			}
 		}
 		
@@ -1907,11 +1907,11 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 		}
 		else {
 			if (!empty($_REQUEST["new_password"])) { // otherwise no change
-				$sql_query[]="SET PASSWORD FOR ".$current_username." = PASSWORD(".fixStrSQL($_REQUEST["new_password"]).");";
+				$sql_query[]="SET PASSWORD FOR ".$current_user." = PASSWORD(".fixStrSQL($_REQUEST["new_password"]).");";
 			}
-			mysqli_query($db,"REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$current_username.";"); // ignore errors
+			mysqli_query($db,"REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$current_user.";"); // ignore errors
 			if (!$_REQUEST["person_disabled"]) { // no privileges otherwise
-				$sql_query=array_merge($sql_query,getGrantArray($_REQUEST["permissions"],$current_username,$_REQUEST["username"],$pk,$db_name));
+				$sql_query=array_merge($sql_query,getGrantArray($_REQUEST["permissions"],$current_user,$_REQUEST["username"],$pk,$db_name));
 			}
 			$sql_query[]="FLUSH PRIVILEGES;";
 		}

@@ -592,20 +592,25 @@ function getSDSSQL($fieldName) {
 			nvp($fieldName."_by",SQL_TEXT).
 			nvp($fieldName."_mime",SQL_TEXT).
 			nvp($fieldName."_blob",SQL_BLOB);
-	} else if ($firstChar=="+" && pathSafe($_REQUEST[$fieldName."_url"],"..")) { // file in temp directory
-		$tmpdir=oe_get_temp_dir();
-		$filename=$tmpdir."/".substr($_REQUEST[$fieldName."_url"],1);
-		$_REQUEST[$fieldName."_blob"]=file_get_contents($filename);
-		if (isPDF($_REQUEST[$fieldName."_blob"])) {
-			$_REQUEST[$fieldName."_mime"]="application/pdf";
+	} elseif ($firstChar=="+") {
+		if (strlen($_REQUEST[$fieldName."_url"])==1) {
+			// delete
+			return $fieldName."_url=\"\",".$fieldName."_by=\"\",".$fieldName."_mime=\"\",".$fieldName."_blob=\"\",";
+		} elseif (pathSafe($_REQUEST[$fieldName."_url"],"..")) { // file in temp directory
+			$tmpdir=oe_get_temp_dir();
+			$filename=$tmpdir."/".substr($_REQUEST[$fieldName."_url"],1);
+			$_REQUEST[$fieldName."_blob"]=file_get_contents($filename);
+			if (isPDF($_REQUEST[$fieldName."_blob"])) {
+				$_REQUEST[$fieldName."_mime"]="application/pdf";
+			}
+			@unlink($filename);
+			$_REQUEST[$fieldName."_url"]="";
+			
+			return nvp($fieldName."_url",SQL_TEXT).
+				nvp($fieldName."_by",SQL_TEXT).
+				nvp($fieldName."_mime",SQL_TEXT).
+				nvp($fieldName."_blob",SQL_BLOB);
 		}
-		@unlink($filename);
-		$_REQUEST[$fieldName."_url"]="";
-		
-		return nvp($fieldName."_url",SQL_TEXT).
-			nvp($fieldName."_by",SQL_TEXT).
-			nvp($fieldName."_mime",SQL_TEXT).
-			nvp($fieldName."_blob",SQL_BLOB);
 	}
 	return "";
 }
@@ -885,7 +890,7 @@ function refreshActiveData($db_id,$pk_arr) {
 
 function getFingerprintSQL(& $molecule,$isLast=false) {
 	for ($a=0;$a<14;$a++) {
-		$retval.="fingerprint".($a+1)."=".fixNull($molecule["fingerprints"][$a]+0).",";
+		$retval.="fingerprint".($a+1)."=".fixNull(intval($molecule["fingerprints"][$a])).",";
 	}
 	if ($isLast) {
 		$retval=substr($retval,0,strlen($retval)-1);

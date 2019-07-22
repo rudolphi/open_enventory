@@ -555,15 +555,15 @@ function readMolfile($molfileStr,$paramHash=array()) {
 			$atoms=colSplit($lines[$a+$b],array(10,	10,	10,	1,	3,	2,	3,	3,	3,	3,	3,	3,	3,	3,	3,	3));
 			//							x	y	z	spc	sym	iso	chg	ster	H	ster	val	H0	typ	num	inv	ex
 		}
-		$charge=$atoms[6]+0;
+		$charge=intval($atoms[6]);
 		if ($charge!=0) {
 			$charge=4-$charge;
 		}
 		$atoms[4]=ucfirst(strtolower($atoms[4]));
 		$newAtom=array(
-			"x" => $atoms[0]+0.0, 
-			"y" => $atoms[1]+0.0, 
-			"z" => $atoms[2]+0.0, 
+			"x" => floatval($atoms[0]), 
+			"y" => floatval($atoms[1]), 
+			"z" => floatval($atoms[2]), 
 			CHARGE => $charge, 
 			ORIG_CHARGE => $charge, 
 			BONDS => 0, 
@@ -709,7 +709,7 @@ function readMolfile($molfileStr,$paramHash=array()) {
 		case "CHG":
 			// Ladungszeile(n) am Ende einlesen
 			if ($addline[2]>0) for ($c=0;$c<$addline[2];$c++) {
-				$charge=$addline[2*$c+4]+0;
+				$charge=intval($addline[2*$c+4]);
 				$atom_no=$addline[2*$c+3]-1;
 				$molecule["atoms"][$atom_no][CHARGE]=$charge;
 				$molecule["atoms"][$atom_no][ORIG_CHARGE]=$charge;
@@ -719,7 +719,7 @@ function readMolfile($molfileStr,$paramHash=array()) {
 			// Ladungszeile(n) am Ende einlesen
 			if ($addline[2]>0) for ($c=0;$c<$addline[2];$c++) {
 				$atom_no=$addline[2*$c+3]-1;
-				$mass=$addline[2*$c+4]+0;
+				$mass=intval($addline[2*$c+4]);
 				$molecule["atoms"][$atom_no][MASS]=$mass;
 				$molecule["atoms"][$atom_no][IS_ISOTOPE]=true;
 			}
@@ -727,7 +727,7 @@ function readMolfile($molfileStr,$paramHash=array()) {
 		case "RAD":
 			// Ladungszeile(n) am Ende einlesen
 			if ($addline[2]>0) for ($c=0;$c<$addline[2];$c++) {
-				$radical=$addline[2*$c+4]+0;
+				$radical=intval($addline[2*$c+4]);
 				$atom_no=$addline[2*$c+3]-1;
 				$molecule["atoms"][$atom_no][ORIG_RADICAL]=$radical;
 				$molecule["atoms"][$atom_no]["r"]=$radical;

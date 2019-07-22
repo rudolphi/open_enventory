@@ -239,7 +239,7 @@ WHERE (lab_journal.lab_journal_status IS NULL OR lab_journal.lab_journal_status=
 				if (empty($remote_host)) {
 					$remote_host="%";
 				}
-				$current_username=fixStrSQL($username)."@".fixStrSQL($remote_host);
+				$current_user=fixStrSQL($username)."@".fixStrSQL($remote_host);
 				// remove this person from all borrowed items (return them all)
 				$sql_query=array(
 					"UPDATE chemical_storage SET borrowed_by_person_id=NULL WHERE borrowed_by_person_id=".$pk.";",
@@ -251,9 +251,9 @@ WHERE (lab_journal.lab_journal_status IS NULL OR lab_journal.lab_journal_status=
 					"DROP VIEW IF EXISTS ".getSelfViewName($username).";",
 				);
 				if ($username!=$db_user) { // unfortunately we cannot remove own privileges and then drop user
-					$sql_query[]="REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$current_username.";";
+					$sql_query[]="REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$current_user.";";
 				}
-				$sql_query[]="DROP USER ".$current_username.";";
+				$sql_query[]="DROP USER IF EXISTS ".$current_user.";";
 				$result=performQueries($sql_query,$db);
 			}
 		break;

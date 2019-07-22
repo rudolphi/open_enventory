@@ -108,7 +108,7 @@ function matchAtoms($needleAtom,$haystackAtom) {
 }
 
 /* function matchBonds($needleBond,$haystackBond,$paramHash=array()) { // $paramHash is obsolete for bond assignment in reaction mapping
-	if ($needleBond[BOND_ORDER]+0.0==$haystackBond[BOND_ORDER]+0.0 || $needleBond[ORIG_BOND_ORDER]==$haystackBond[ORIG_BOND_ORDER]) { // gefunden
+	if (floatval($needleBond[BOND_ORDER])==floatval($haystackBond[BOND_ORDER]) || $needleBond[ORIG_BOND_ORDER]==$haystackBond[ORIG_BOND_ORDER]) { // gefunden
 		return true;
 	}
 	// groups which are searched while making the fingerprints are not aromatized, therefore more tolerant matching
@@ -124,7 +124,7 @@ function matchBonds(& $needle,$lastNeedle,$prevNeedle,& $haystackMolecule,$lastH
 	$needleBond=& $needle["bondsFromNeighbours"][ $lastNeedle ][ $prevNeedle ];
 	$haystackBond=& $haystackMolecule["bondsFromNeighbours"][ $lastHaystack ][ $prevHaystack ];
 	if (
-		$needleBond[BOND_ORDER]+0.0==$haystackBond[BOND_ORDER]+0.0 || 
+		floatval($needleBond[BOND_ORDER])==floatval($haystackBond[BOND_ORDER]) || 
 		$needleBond[ORIG_BOND_ORDER]==$haystackBond[ORIG_BOND_ORDER]
 		|| 
 		(
@@ -186,19 +186,19 @@ function matchPathsRecursive(& $part_matchmat,& $needle,& $haystackMolecule,$nee
 		$needleBond=& $needle["bondsFromNeighbours"][ $lastNeedle ][ $prevNeedle ];
 		$haystackBond=& $haystackMolecule["bondsFromNeighbours"][ $lastHaystack ][ $prevHaystack ];
 		
-		if ($needleBond[BOND_ORDER]+0.0!=1.5 && $haystackBond[BOND_ORDER]+0.0!=1.5) { // no aromatic stuff
+		if (floatval($needleBond[BOND_ORDER])!=1.5 && floatval($haystackBond[BOND_ORDER])!=1.5) { // no aromatic stuff
 			$invert_aromatic=SUBST_INVERT_OFF;
 		}
 		else {
 			$inverted_match=(
-				$haystackBond[BOND_ORDER]+0.0==1.5 && 
-				($needleBond[BOND_ORDER]+0.0==1 || $needleBond[BOND_ORDER]+0.0==2) && // then all must be inverted
+				floatval($haystackBond[BOND_ORDER])==1.5 && 
+				(floatval($needleBond[BOND_ORDER])==1 || floatval($needleBond[BOND_ORDER])==2) && // then all must be inverted
 				$needleBond[ORIG_BOND_ORDER]!=$haystackBond[ORIG_BOND_ORDER]
 			);
 		}
 		
 		if ($invert_aromatic==SUBST_INVERT_ON) { // inverted mode is active
-			if (!$inverted_match && $needleBond[BOND_ORDER]+0.0!=1.5) { // keeping inverted or going back to aromatic
+			if (!$inverted_match && floatval($needleBond[BOND_ORDER])!=1.5) { // keeping inverted or going back to aromatic
 				return false; // chance missed
 			}
 		}
@@ -212,8 +212,8 @@ function matchPathsRecursive(& $part_matchmat,& $needle,& $haystackMolecule,$nee
 			}
 		}
 		elseif (
-			$needleBond[BOND_ORDER]+0.0==1.5 || // going through aromatic area in needle
-			($haystackBond[BOND_ORDER]+0.0!=1.5 && $needleBond[ORIG_BOND_ORDER]==$haystackBond[ORIG_BOND_ORDER]) // exactly matching non-aromatic parts
+			floatval($needleBond[BOND_ORDER])==1.5 || // going through aromatic area in needle
+			(floatval($haystackBond[BOND_ORDER])!=1.5 && $needleBond[ORIG_BOND_ORDER]==$haystackBond[ORIG_BOND_ORDER]) // exactly matching non-aromatic parts
 		) { // allow inverted mode
 			$invert_aromatic=SUBST_INVERT_ANY;
 		}

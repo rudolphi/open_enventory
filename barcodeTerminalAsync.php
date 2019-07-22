@@ -115,6 +115,11 @@ elseif (!empty($_REQUEST["barcode"])) {
 				$output.=getSound("error");
 			}
 		}
+		if ($_REQUEST["storage_permanent"]) {
+			// just do not overwrite values in form
+			unset($barcodeData["result"]["storage_id"]);
+			unset($barcodeData["result"]["compartment"]);
+		}
 	break;
 	case "storage":
 		echo "parent.setStorage(".fixNull($barcodeData["pk"]).");

@@ -399,7 +399,7 @@ foreach ($ljs as $lj_name) {
 				if ($espfile) {
 					$_REQUEST["analytics_method_id"]=$id_1H;
 					$nmr_data=$analytics["nmr"]["acd"]["procFile"]($espfile);
-					$mhz=$nmr_data["dataHash"]["freq_mhz"]+0;
+					$mhz=intval($nmr_data["dataHash"]["freq_mhz"]);
 					$mhz=100*round($mhz/100);
 					switch ($mhz) {
 					case 200:

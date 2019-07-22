@@ -187,7 +187,7 @@ function checkGetFieldsForTable() {
 function getPkName($base_table) {
 	global $tables;
 	//~ return ifempty($tables[$base_table]["pk"],$base_table."_id");
-	if (!$tables[$base_table]["noPk"]) {
+	if (!@$tables[$base_table]["noPk"]) {
 		return $base_table."_id";
 	}
 }

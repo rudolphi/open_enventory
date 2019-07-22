@@ -48,7 +48,7 @@ function handleDesiredAction() { // return array(success,message_text,message_da
 		return array(FAILURE,s("no_session_data")." ".$_REQUEST["sess_proof"]."/".$_SESSION["sess_proof"]);
 	}
 	
-	$db_id=$_REQUEST["db_id"]+0;
+	$db_id=intval($_REQUEST["db_id"]);
 	
 	// fine permissions check
 	$permission_denied=false;
@@ -271,7 +271,7 @@ function handleDesiredAction() { // return array(success,message_text,message_da
 					$failure_count=0;
 					$last_nr_in_lab_journal=0;
 					$refresh_data=array(); // nur db_id=-1
-					$transfer_settings=$_REQUEST["settings"]+0;
+					$transfer_settings=intval($_REQUEST["settings"]);
 					
 					if (count($settings["include_in_auto_transfer"][$transfer_settings])) {
 					
@@ -335,7 +335,7 @@ function handleDesiredAction() { // return array(success,message_text,message_da
 												continue 2; // incomplete, next list entry
 											}
 											// insert new and assign to reaction with no #
-											$nr_in_lab_journal=substr($this_filename,strlen($lab_journal_codes[$c]))+0; // code abschneiden und als Zahl interpretierbaren Teil nehmen
+											$nr_in_lab_journal=intval(substr($this_filename,strlen($lab_journal_codes[$c]))); // code abschneiden und als Zahl interpretierbaren Teil nehmen
 											//~ echo $nr_in_lab_journal;
 											list($reaction)=mysql_select_array(array(
 												"table" => "reaction", 

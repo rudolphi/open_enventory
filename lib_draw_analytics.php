@@ -297,7 +297,7 @@ function getScaledImg($img_data,$paramHash=array()) { // if one is <1 preserve s
 		$im=imagecreatetruecolor($width, $height);
 	}
 	
-	imagecopyresampled($im,$im2,0,0,max(0,$paramHash["clipLeft"]+0),max(0,$paramHash["clipTop"]+0),$width, $height,$old_width,$old_height);
+	imagecopyresampled($im,$im2,0,0,max(0,intval($paramHash["clipLeft"])),max(0,intval($paramHash["clipTop"])),$width, $height,$old_width,$old_height);
 	ob_start();
 	switch (strtolower($format)) {
 	case "gif":
@@ -655,7 +655,7 @@ class specImage extends gdImage {
 	}
 	
 	function drawText($text,$x="",$y="") {
-		imagettftext($this->im,$this->ttffontsize,0,$x+0,$y+15,$this->black,$this->ttffontname,$text);
+		imagettftext($this->im,$this->ttffontsize,0,intval($x),intval($y)+15,$this->black,$this->ttffontname,$text);
 	}
 	
 	function drawChromas() {

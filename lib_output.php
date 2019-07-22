@@ -329,7 +329,7 @@ function getCombiButton($paramHash) {
 // Symbol nur 1x zeigen
 	global $pk_name;
 	$table=$paramHash["table"];
-	$number=$paramHash["number"]+0;
+	$number=intval($paramHash["number"]);
 	$db_id=$paramHash["db_id"];
 	
 	$add_button=false;
@@ -2626,7 +2626,7 @@ function addTBodyCell(& $output,& $files,$idx,$subidx,& $fieldIdx,$row,$col,$par
 		}
 	break;
 	case "links_chem":
-		//~ $noSelected=$_SESSION["selection"][$row["db_id"]][$row["chemical_storage_id"]]+0;
+		//~ $noSelected=intval($_SESSION["selection"][$row["db_id"]][$row["chemical_storage_id"]]);
 		
 		if ($paramHash["output_type"]=="html") {
 			$retval=getCombiButton(array(
