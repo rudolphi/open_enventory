@@ -65,6 +65,13 @@ $order_by_keys=array(
 		),
 		"for_table" => array("person"),
 	),
+	// Khoi: added for ordering of users according to barcode
+	"person_barcode" => array(
+		"columns" => array(
+			array("field" => "person_barcode"), 
+		),
+		"for_table" => array("person"),
+	),
 	
 	"storage_name" => array(
 		"columns" => array(
@@ -84,7 +91,14 @@ $order_by_keys=array(
 		),
 		"for_table" => array("institution"),
 	),
-	
+	// Khoi: added for ordering of users according to barcode
+	"storage_barcode" => array(
+		"columns" => array(
+			array("field" => "storage_barcode"), 
+		),
+		"for_table" => array("storage"),
+	),
+
 	"from_person" => array(
 		"columns" => array(
 			array("field" => "from_person"), 
