@@ -71,7 +71,10 @@ else {
 $desired_action=$_REQUEST["desired_action"];
 $name=s($baseTable);
 
-if (empty($_REQUEST["fields"]) && !empty($g_settings["views"][$baseTable]["view_standard"])) {
+if ($_REQUEST["table"] == "disposed_chemical_storage") {
+	$_REQUEST["fields"] = $g_settings["views"]["disposed_chemical_storage"];
+}
+elseif (empty($_REQUEST["fields"]) && !empty($g_settings["views"][$baseTable]["view_standard"])) {
 	$_REQUEST["fields"]=$g_settings["views"][$baseTable]["view_standard"];
 }
 
