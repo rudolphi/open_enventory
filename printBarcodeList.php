@@ -71,7 +71,10 @@ case "helper": // no real table, the fill level commands instead
 	//~ $barcode_img_height=60;
 	
 	// Masse, Volumen, %
-	$dataset_commands=array(0 => "delete", 1 => "cancel", 2 => "inventory_on", 3 => "inventory_off", );
+	$dataset_commands=array(0 => "delete", 1 => "cancel", 2 => "inventory_on", 3 => "inventory_off",
+							4 => "storage_permanent_on",  // Khoi: adding from 4 for "Set storage for all"
+							5 => "storage_permanent_off",
+						 );  
 	
 	$max=max(count($chemical_storage_sizes),count($chemical_storage_levels));
 	$res=array();
