@@ -1004,6 +1004,8 @@ case "settings":
 	if ($permissions & _admin) {
 		showSideLink(array("url" => "g_settings.php?".$linkParams, "text" => s("g_settings"), "target" => "mainpage", ));
 		showSideLink(array("url" => "perm_settings.php?".$linkParams, "text" => s("perm_settings"), "target" => "mainpage", ));
+		// Khoi: adding function for automated barcode generation of location or users for "Existing barcodes" option
+		showSideLink(array("url" => "barcode_autogeneration.php?".$linkParams, "text" => s("barcode_autogeneration"), "target" => "mainpage", ));
 	}
 	if ($db_user!=ROOT) {
 		showSideLink(array("url" => "settings.php?".$linkParams, "text" => s("settings"), "target" => "mainpage", ));

@@ -1745,6 +1745,12 @@ O sistema de inventário eletrônico apresenta dados físicos e de segurança de
 	"cmrReport" => "Relatório CMR para usuário (fornecido como está)",
 	"display_interactive_viewer" => "Abrir visualizador interativo",
 	"" => "",
+
+	// Khoi:
+	"barcode_autogeneration" => "Location/User Barcode Autogeneration",
+	"barcode_not_found" => "Barcode not found!",
+	"use_bootstrap4" => "Use Bootstrap 4 theme",
+	
 );
 
 ?>

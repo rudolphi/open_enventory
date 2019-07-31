@@ -1760,5 +1760,11 @@ Das elektronische Inventarsystem zeigt Stoff- und Sicherheitsdaten aller Verbind
 	"display_interactive_viewer" => "Interaktiven Betrachter öffnen", 
 	"" => "", 
 	"" => "", 
+
+	// Khoi:
+	"barcode_autogeneration" => "Location/User Barcode Autogeneration",
+	"barcode_not_found" => "Barcode not found!",
+	"use_bootstrap4" => "Use Bootstrap 4 theme",
+		
 );
 ?>

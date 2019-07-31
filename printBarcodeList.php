@@ -178,7 +178,18 @@ for ($a=0;$a<count($res);$a++){
 	case "person":
 		if (!empty($res[$a]["person_barcode"])) {
 			$barcode=$res[$a]["person_barcode"];
-			$format="ean13";
+			// $format="ean13";
+			$format="Code128";   // Khoi: EAN does not fit a lot of custom barcodes, use code128 her
+			// $format="ean8";
+			break;
+		}
+	// Khoi: for existing storage barcodes
+	case "storage":
+		if (!empty($res[$a]["storage_barcode"])) {
+			$barcode=$res[$a]["storage_barcode"];
+			// $format="ean13";
+			$format="Code128";
+			// $format="ean8";
 			break;
 		}
 	// no break;
@@ -187,7 +198,15 @@ for ($a=0;$a<count($res);$a++){
 	}
 	
 	if (!empty($value)) {
-		echo "<br><img src=\"getBarcode.php?text=".$barcode."&format=".$format."&horizontal=true&preform=true&width=".$barcode_width."&height=".$barcode_img_height."\">";
+		// Khoi: use ean13 and ean8 for auto-generated barcode 
+		if ($format == "ean13" || $format == "ean8") {
+			echo "<br><img src=\"getBarcode.php?text=".$barcode."&format=".$format."&horizontal=true&preform=true&width=".$barcode_width."&height=".$barcode_img_height."\">";
+		}
+		else if ($format == "Code128") {
+			// See here for brief tutorial:
+			// https://www.skptricks.com/2017/09/how-to-generate-bar-code-with-php.html
+			echo "<br><img src=\"getBarcode128.php?text=".$barcode."&codetype=".$format."&orientation=horizontal&print=true&size=".($barcode_img_height*0.8)."\">";
+		}
 	}
 	else {
 		echo "&nbsp;";
