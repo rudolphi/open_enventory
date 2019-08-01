@@ -115,6 +115,7 @@ Kto-Nr./Proj.-Nr. ".$_REQUEST["order_acc_no"]."<br><br>";
 	return array(ABORT_PROCESS,s("order_sent_to1").$own_data["email_chemical_supply"].s("order_sent_to2"));
 }
 
+$g_settings = array();    // Khoi: to fix issue in PHP 7+, there is warning "PHP Warning:  array_merge(): Argument #1 is not an array in"
 $g_settings=array_merge($g_settings,$default_g_settings);
 
 ?>

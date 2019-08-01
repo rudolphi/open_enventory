@@ -110,7 +110,7 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 			));
 		}
 		
-		if (count($_FILES["spzfile_file"]) && $_FILES["spzfile_file"]["error"]==0) { // upload
+		if (is_array($_FILES["spzfile_file"]) && $_FILES["spzfile_file"]["error"]==0) { // upload
 			/*
 			[load_molfile] => Array
 			(
@@ -238,7 +238,7 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 			$device["analytics_type_name"]=$spectrum_data["analytics_type_name"];
 			//print_r($spectrum_data);die("X".$spectrum_data["interpretation"]."X");
 			
-			if (count($spectrum_data)) {
+			if (is_array($spectrum_data)) {
 				//~ $spectrum_data=$analytics[ $device["analytics_type_code"] ][ $device["analytics_device_driver"] ]["getProcData"]($raw_data["zipdata"],$analytics_img_params);
 				$graphics_text=
 					",analytical_data_graphics_blob=".fixBlob($spectrum_data["img"][0]).
@@ -901,7 +901,7 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 			
 			// assign chemical_storage_type
 			$sql_query[]="DELETE FROM chemical_storage_chemical_storage_type WHERE chemical_storage_id=".$pk.";";
-			if (count($_REQUEST["chemical_storage_type"])) {
+			if (is_array($_REQUEST["chemical_storage_type"])) {
 				foreach ($_REQUEST["chemical_storage_type"] as $chemical_storage_type_id) {
 					if (is_numeric($chemical_storage_type_id)) {
 						$sql_query[]="INSERT INTO chemical_storage_chemical_storage_type (chemical_storage_type_id,chemical_storage_id) ".
@@ -1110,7 +1110,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 			$literature_blob_upload=& $_REQUEST["literature_blob"];
 			$literature_mime=& $_REQUEST["literature_mime"];
 		}
-		elseif (count($_FILES["literature_blob_upload"]) && $_FILES["literature_blob_upload"]["error"]==0) { // upload
+		elseif (is_array($_FILES["literature_blob_upload"]) && $_FILES["literature_blob_upload"]["error"]==0) { // upload
 			/*
 		    [load_molfile] => Array
 			(
@@ -1234,7 +1234,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 	
 	case "message":
 		if ($_REQUEST["from_person"]==$person_id) {
-			if (count($_REQUEST["recipients"])==0) {
+			if (empty($_REQUEST["recipients"])) {
 				return array(FAILURE,s("error_no_to_person"));
 			}
 			if (empty($pk)) {
@@ -1400,7 +1400,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 		
 		$sql_query[]=$update_query;
 		$sql_query[]="DELETE FROM molecule_names WHERE molecule_id=".$pk.";";
-		if (count($names)) {
+		if (is_array($names)) {
 			foreach ($names as $idx => $name) {
 				$is_trivial_name=endswith($name,"#");
 				if ($is_trivial_name) {
@@ -1417,7 +1417,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 
 		// assign molecule_type
 		$sql_query[]="DELETE FROM molecule_molecule_type WHERE molecule_id=".$pk.";";
-		if (count($_REQUEST["molecule_type"])) {
+		if (is_array($_REQUEST["molecule_type"])) {
 			foreach ($_REQUEST["molecule_type"] as $molecule_type_id) {
 				if (is_numeric($molecule_type_id)) {
 					$sql_query[]="INSERT INTO molecule_molecule_type (molecule_type_id,molecule_id) ".
@@ -1850,7 +1850,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 		
 		// set project membership
 		$sql_query[]="DELETE FROM project_person WHERE person_id=".$pk.";";
-		if (count($_REQUEST["project"])) {
+		if (is_array($_REQUEST["project"])) {
 			foreach ($_REQUEST["project"] as $project_id) {
 				if (is_numeric($project_id)) {
 					$sql_query[]="INSERT INTO project_person (project_id,person_id) VALUES (".fixNull($project_id).",".fixNull($pk).")"; // cmdINSERT
