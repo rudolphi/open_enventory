@@ -1691,6 +1691,12 @@ Il sistema elettronico di inventario permette di accedere ai dati fisici ed alle
 	"safety_sigword_warning" => "Attenzione",
 	"" => "",
 	"" => "",
+
+	// Khoi:
+	"barcode_autogeneration" => "Location/User Barcode Autogeneration",
+	"barcode_not_found" => "Barcode not found!",
+	"use_bootstrap4" => "Use Bootstrap 4 theme",
+	
 );
 
 ?>

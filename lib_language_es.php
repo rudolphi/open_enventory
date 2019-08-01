@@ -1366,6 +1366,12 @@ El sistema de inventario electrónico muestra los datos físicos y de seguridad 
 	"" => "",
 	"" => "",
 	"" => ""
+
+	// Khoi:
+	"barcode_autogeneration" => "Location/User Barcode Autogeneration",
+	"barcode_not_found" => "Barcode not found!",
+	"use_bootstrap4" => "Use Bootstrap 4 theme",
+	
 );
 
 ?>

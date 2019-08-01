@@ -1528,6 +1528,12 @@ $localizedString["fr"]=Array(
 	"safety_sigword_warning" => "Attention",
 	"" => "",
 	"" => "",
+
+	// Khoi:
+	"barcode_autogeneration" => "Location/User Barcode Autogeneration",
+	"barcode_not_found" => "Barcode not found!",
+	"use_bootstrap4" => "Use Bootstrap 4 theme",
+	
 );
 
 ?>
