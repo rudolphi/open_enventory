@@ -69,7 +69,7 @@ function generateSigelBarcodeEAN13($sigel) {
 	
 	// code
 	for ($a=0;$a<$strlen;$a++) {
-		$digit=ord($sigel{$a})-47; // 0 => 1
+		$digit=ord($sigel[$a])-47; // 0 => 1
 		if ($digit>99) {
 			return;
 		}
@@ -422,7 +422,7 @@ function makeCAS($text) {
 }
 
 function getBestCAS($cas_nrs) {
-	if (count($cas_nrs)) {
+	if (arrCount($cas_nrs)) {
 		$minqual=30; // lower is better
 		$cas_freq=array_count_values($cas_nrs);
 		for ($d=0;$d<count($cas_nrs);$d++) {
@@ -481,7 +481,7 @@ function checkEAN($barcode) {
 function getEANCheck($num,$len) {
 	$sum=10;
 	for ($a=1;$a<=$len;$a++) {
-		$digit=intval($num{$len-$a});
+		$digit=intval($num[$len-$a]);
 		if ($a % 2) {
 			$sum+=3*$digit;
 		}
@@ -839,13 +839,17 @@ function fixYear($year) {
 	if ($year<0) {
 		return "";
 	}
-	if ($year>=100) {
-		return $year;
+	return $year+getYearIncrement($year);
+}
+
+function getYearIncrement($year) {
+	if ($year<0	|| $year>=100) {
+		return 0;
 	}
 	if ($year<=30) {
-		return $year+2000;
+		return 2000;
 	}
-	return $year+1900;
+	return 1900;
 }
 
 function getCitation($literature_data,$mode,$noHTML=false) {
@@ -1046,7 +1050,7 @@ function parseCSV($data,$sep=",",$quot="\"",$escape="\\") {
 	$in_str=false;
 	$val="";
 	for ($a=0;$a<$len;$a++) {
-		$char=$data{$a};
+		$char=$data[$a];
 		if ($char==$escape) {
 			$esc=true;
 			continue;
@@ -1272,7 +1276,7 @@ function extendMoleculeNames(& $molecule) {
 	$old_array=$molecule["molecule_names_array"]; // filter for empty or existing ones
 	$molecule["molecule_names_array"]=array();
 	if (is_array($old_array)) foreach ($old_array as $name) {
-		$name=strip_tags($name);
+		$name=fixTags($name);
 		if (!empty($name) && !in_array($name,$molecule["molecule_names_array"]) && !in_array($name,$excludedNames)) {
 			$molecule["molecule_names_array"][]=$name;
 		}
@@ -1311,39 +1315,55 @@ function toDateTime($str,$seconds=false) {
 	if (!$str || $str==invalidSQLDateTime) {
 		return "";
 	}
-	preg_match("/^(\d{4})-(\d\d)-(\d\d) (\d\d):(\d\d):(\d\d)\$/",$str,$result); // JJJJ-MM-TT
+	$result=date_create_from_format(sqlDateFormat." ".sqlTimeFormat,$str);
 	if (!$result) {
 		return "";
 	}
-	// have different languages here
-	return $result[3].".".$result[2].".".$result[1].", ".$result[4].":".$result[5].($seconds?":".$result[6]:"");
+	return date_format($result, getLocalDateTimePattern($seconds));
 }
 
 function toDate($str) {
-	global $lang;
 	if (!$str || $str==invalidSQLDate) {
 		return "";
 	}
-	preg_match("/^(\d{4})-(\d\d)-(\d\d)(.*)/",$str,$result); // JJJJ-MM-TT (plus time, no reformatting)
+	$result=date_create_from_format(sqlDateFormat." ".sqlTimeFormat,$str);
 	if (!$result) {
-		return "";
+		$result=date_create_from_format(sqlDateFormat,$str);
+		if (!$result) {
+			return "";
+		}
+		return date_format($result, getLocalDatePattern());
 	}
-	// have different languages here
-	return $result[3].".".$result[2].".".$result[1].$result[4];
+	return date_format($result, getLocalDateTimePattern());
 }
 
 function getSQLDate($str) {
-	global $lang;
 	if (empty($str)) {
 		return fixStr(invalidSQLDate);
 	}
-	if (!preg_match("/^(\d+)\.(\d+)\.(\d{2,4})/",$str,$result)) {
+	$result=date_create_from_format(getLocalDatePattern(),$str);
+	if (!$result) {
 		return fixStr(invalidSQLDate);
 	}
-	$result[3]=fixYear($result[3]);
-	fillZero($result[1]);
-	fillZero($result[2]);
-	return fixStr($result[3]."-".$result[2]."-".$result[1]);
+	$inc=getYearIncrement($result->format("Y"));
+	if ($inc) {
+		$result->modify("+".$inc." years");
+	}
+	return fixStr(date_format($result,sqlDateFormat));
+}
+
+function getLocalDateTimePattern($seconds=true) {
+	return getLocalDatePattern()." ".getLocalTimePattern($seconds);
+}
+
+function getLocalDatePattern() {
+	return ifempty(s("phpDateFormat"), phpDateFormat);
+}
+
+function getLocalTimePattern($seconds=true) {
+	return ($seconds 
+			? ifempty(s("phpTimeSecondsFormat"), phpTimeSecondsFormat)
+			: ifempty(s("phpTimeFormat"), phpTimeFormat));
 }
 
 function fillZero(& $number,$digits=2) {
@@ -1437,13 +1457,13 @@ function fixDate($str,$alsoTime=false) {
 	if (!$str || $str==invalidSQLDate || $str==invalidSQLDateTime) {
 		return $invalid;
 	}
-	if (preg_match("/^\d{4}-\d{2}-\d{2}\$/",$str)) { // JJJJ-MM-TT
-		return $str;
-	}
 	if ($alsoTime) {
 		if (preg_match("/^\d{4}-\d{2}-\d{2} \d{1,2}:\d{2}:\d{2}\$/",$str)) {// JJJJ-MM-TT hh:mm:ss
 			return $str;
 		}
+	}
+	if (preg_match("/^(\d{4}-\d{2}-\d{2})/",$str,$match)) { // JJJJ-MM-TT
+		return $match[1];
 	}
 	preg_match("/^(\d{1,2}).(\d{1,2}).(\d{2,4})\$/",$str,$result); // TT-MM-JJJJ
 	if ($result) {
@@ -1477,7 +1497,7 @@ function roundIfNotEmpty($num,$digits=0) {
 }
 
 function round_sign($num,$digits) {
-	return round($num,ceil($digits-ceil(log10($num))));
+	return round($num,intval(ceil($digits-ceil(log10($num)))));
 }
 
 // purity
@@ -1681,10 +1701,11 @@ function roundLJ($number) {
 	}
 }
 
+// from https://www.php.net/manual/en/function.json-decode.php#95782
 function json_decode_nice($json,$assoc=TRUE){
     $json=str_replace(array("\n","\r"),"",$json);
     $json=preg_replace('/([{,]+)(\s*)([^"]+?)\s*:/','$1"$3":',$json);
-    return json_decode($json,$assoc);
+    return json_decode($json,$assoc,512,1048576); // JSON_INVALID_UTF8_IGNORE=1048576 avail since PHP 7.2
 }
 
 function fixCurrency($currency) {
@@ -1752,5 +1773,13 @@ function utf8ize($mixed) {
 		return mb_convert_encoding($mixed,"UTF-8","UTF-8");
 	}
 	return $mixed;
+}
+
+function uuid2bin($uuid) {
+	if (isEmptyStr($uuid)) {
+		return "";
+	}
+    $binary = pack("H*" , str_replace('-' , '' , $uuid));
+    return $binary;
 }
 ?>

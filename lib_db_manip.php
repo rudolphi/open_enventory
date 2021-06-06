@@ -527,7 +527,7 @@ function handleDesiredAction() { // return array(success,message_text,message_da
 		switch ($baseTable) {
 		case "analytical_data":
 			if (!empty($pk)) {
-				$sql_query.="UPDATE analytical_data SET reaction_id=NULL,reaction_chemical_id=NULL".getPkCondition($table,$pk);
+				$sql_query[]="UPDATE analytical_data SET reaction_id=NULL,reaction_chemical_id=NULL".getPkCondition($table,$pk);
 				$result=performQueries($sql_query,$dbObj);
 				addChangeNotify($db_id,$dbObj,$baseTable,$pk);
 				return array(SUCCESS,s("analytical_data_unlinked"));
@@ -966,6 +966,24 @@ window.close();
 						return array(SUCCESS,$successText);
 					}
 				}
+			}
+		}
+	break;
+	
+	case "confirm": // submit to sciflection
+		if ($baseTable=="data_publication") {
+			if ($permissions & _lj_admin) {
+				$sql_query[]="UPDATE data_publication SET ".
+						"publication_confirmed_by=".fixStr($db_user).",".
+						"publication_confirmed_when=FROM_UNIXTIME(".time()."),".
+						"publication_status='confirmed'".
+					" WHERE data_publication_id=".fixNull($pk).";";
+
+				$result=performQueries($sql_query,$dbObj);
+				addChangeNotify($baseTable,$pk,$db_id,$dbObj);
+				return array(SUCCESS,s("submittedDataPublication"));
+			} else {
+				return array(FAILURE,s("permission_denied"));
 			}
 		}
 	break;

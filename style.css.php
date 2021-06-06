@@ -58,6 +58,11 @@ fieldset { padding:2px;margin:0px }
 .noprint {}
 .print_only {}
 
+.menuButton {
+	min-width: 120px;
+	text-align: left !important;
+}
+
 @media handheld, screen, projection, tv {
 .print_only { display:none !important }
 
@@ -111,6 +116,7 @@ table.kleinauftrag td { border:0.05mm solid black;font-size:7pt;line-height:7.5p
 table.kleinauftrag .normal { font-size:8pt;line-height:8.5pt }
 table.kleinauftrag .big { font-size:13pt;line-height:13.5pt }
 
+.scombobox-list { color: black; }
 ";
 
 //~ a.imgButtonA { border:2px solid red; padding:1px; margin:4px; background-color:white; display:block; height:32px;text-align:center; background-color:white }
@@ -238,6 +244,7 @@ tr.block_head > td {vertical-align:top;border-bottom:1px solid black !important;
 
 .overlayMenu { position:absolute;background-color:".defBgColor.";border:1px solid black;padding:1px;overflow:auto;z-index:5 }
 #printMenu,#exportMenu { position:absolute;top:38px;right:16px;width:auto;background-color:".defBgColor.";border:1px solid black;padding:8px;overflow:auto;z-index:5 }
+#pdfMenu { position:absolute;top:38px;left:16px;width:auto;background-color:".defBgColor.";border:1px solid black;padding:8px;overflow:auto;z-index:5 }
 #listOptions { position:absolute;width:auto;background-color:".defBgColor.";border:1px solid black;padding:8px;overflow:auto;z-index:5 }
 ".
 "table.hidden td { padding:0px; margin:0px; border-collapse:collapse }

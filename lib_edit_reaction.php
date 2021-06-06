@@ -85,6 +85,7 @@ function showReactionEditForm($paramHash) { // gibt es nur im editMode. Beim Neu
 		'if (thisValue==false) { '. // aktiven status rot setzen, vorherige ausblenden, nachfolgende anzeigen
 			'PkSelectUpdate("project_id"); '.
 			'initialStatus=getControlValue("status"); '.
+			($permissions & _admin ? 'if (initialStatus>2) {initialStatus=2;}' : ''). // allow admins to go back, but not to planned (avoid duplicate amount subtraction)
 			'updateStatusButtons(); '.
 		'} '.
 		'updateInProgress=false; ';
@@ -441,7 +442,7 @@ function showReactionEditForm($paramHash) { // gibt es nur im editMode. Beim Neu
 			"text" => "", 
 			"onChange" => "updateSel();", 
 			"onDblClick" => "addTemplateToInput(&quot;observation_templates&quot;,&quot;realization_observation&quot;); ", 
-			"skip" => (count($observation_templates_names)==0), 
+			"skip" => (arrCount($observation_templates_names)==0), 
 		), 
 
 
@@ -483,7 +484,7 @@ function showReactionEditForm($paramHash) { // gibt es nur im editMode. Beim Neu
 
 	));
 	
-	$retval=loadJS(array("safety_".$lang.".js","reaction.js","reaction_calc.js","reaction_structure.js","reaction_analytics.js","compare_rxn.js"),"lib/").
+	$retval=loadJS(array("safety_".$lang.".js","reaction.js","reaction_calc.js","reaction_structure.js","reaction_ana.js","compare_rxn.js"),"lib/").
 	getFormElements($paramHash,$fieldsArray);
 	
 	return $retval;

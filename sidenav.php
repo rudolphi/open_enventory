@@ -39,9 +39,12 @@ pageHeader();
 require_once "lib_supplier_scraping.php";
 
 
-echo "<link type=\"text/css\" rel=\"stylesheet\" href=\"style.css.php?style=sidenav\">".
-loadJS(array("chem.js","sidenav.js","controls.js","jsDatePick.min.1.3.js","forms.js","searchpk.js","molecule_edit.js"),"lib/").
+echo "<link type=\"text/css\" rel=\"stylesheet\" href=\"style.css.php?style=sidenav\">"
+. "<link type=\"text/css\" rel=\"stylesheet\" href=\"lib/jquery.scombobox.min.css\">".
+loadJS(array("chem.js","sidenav.js","controls.js","jsDatePick.min.1.3.js","forms.js","searchpk.js","molecule_edit.js",
+"jquery-1.12.4.min.js","missed.js","latinize.js","jquery.scombobox.min.js","jquery.easing.min.js"),"lib/").
 script."
+$.noConflict();
 var ".addParamsJS().",ref_reaction;";
 
 if ($_REQUEST["desired_action"]=="detail_search") { // JS functions for detail search
@@ -73,7 +76,7 @@ style."
 "._style."
 </head>
 <body style=\"background-image:url(".$background_down.");background-repeat:repeat-y\"><div id=\"bg_down\"></div><div id=\"uni_logo\">".getImageLink($g_settings["links_in_topnav"]["uni_logo"])."</div>";
-showCommFrame(array());
+showCommFrame(array("url" => (($permissions & _lj_admin)?"upload_sciflection.php":""))); // try to upload any confirmed publications
 copyPasteAppletHelper();
 echo "<div id=\"sideDiv\">";
 
@@ -375,6 +378,7 @@ dependent={\"dbs\":[\"val32\"],\"val32\":[\"val0\"],\"val0\":[\"val1\"],\"val1\"
 	
 	showProjectLinks($linkParams);
 	showSideLink(array("url" => "list.php?table=lab_journal&dbs=-1&".$linkParams, "text" => s("edit_lab_journals"), "target" => "mainpage", ));
+	showSideLink(array("url" => "list.php?table=data_publication&dbs=-1&".$linkParams, "text" => s("edit_data_publications"), "target" => "mainpage", ));
 	//~ showSideLink(array("url" => "list.php?table=reaction_type&dbs=-1&".$linkParams, "text" => s("edit_reaction_types"), "target" => "mainpage"));
 	//~ showSideLink(array("url" => "list.php?table=literature&dbs=-1&".$linkParams, "text" => s("edit_literature"), "target" => "mainpage"));
 	showSideLink(array("url" => "lj_main.php?desired_action=search&table=literature&".$linkParams, "text" => s("edit_literature"), "target" => "_top"));
@@ -908,8 +912,8 @@ dependent={\"dbs\":[\"val0\",\"val9\"]};
 					<option value=\"\">".s("db_only");
 		
 		if (is_array($steps)) foreach ($steps as $code) {
-			if (!$suppliers[$code]["noExtSearch"]) {
-				echo "<option value=".fixStr($code).">".$suppliers[$code]["name"];
+			if (!$suppliers[$code]->noExtSearch) {
+				echo "<option value=".fixStr($code).">".$suppliers[$code]->name;
 			}
 		}
 		
@@ -947,7 +951,7 @@ buttons=new Array("chemical","molecule","supplier","search","reset_button","all"
 
 END;
 		if (is_array($suppliers)) foreach ($suppliers as $code => $supplier) {
-			$startPages[$code]=$suppliers[$code]["urls"]["startPage"];
+			$startPages[$code]=$suppliers[$code]->urls["startPage"];
 		}
 		echo 
 "startPages=".json_encode($startPages).",sidenav_tables=".json_encode($sidenav_tables).";
@@ -1057,6 +1061,7 @@ case "settings_lj":
 	
 	showSideLink(array("url" => "credits.php?".$linkParams, "text" => s("credits"), "target" => "mainpage", ));
 	showSideLink(array("url" => "list.php?table=person&dbs=-1&".$linkParams, "text" => s("edit_users"), "target" => "mainpage", ));
+	showSideLink(array("url" => "list.php?table=other_db&dbs=-1&".$linkParams, "text" => "<i>Sciflection</i>", "target" => "mainpage", )); // needed for sciflection & similar
 	//~ showSideLink(array("url" => "list.php?table=lab_journal&dbs=-1&".$linkParams, "text" => s("edit_lab_journals"), "target" => "mainpage", ));
 	showSideLink(array("url" => "list.php?table=reaction_type&dbs=-1&".$linkParams, "text" => s("edit_reaction_types"), "target" => "mainpage"));
 	showSideLink(array("url" => "list.php?table=analytics_type&dbs=-1&".$linkParams, "text" => s("edit_analytics_types"), "target" => "mainpage", ));
@@ -1077,6 +1082,9 @@ case "settings_lj":
 		showSideLink(array("url" => "root_db_man.php?desired_action=export_lj_data","text" => s("export_lj_data"), "target" => "mainpage", ));
 	}
 
+break;
+case "unsubmittedDataPublications":
+	echo "<b>".s("checkAndSubmitDataPublication")."</b>";
 break;
 }
 

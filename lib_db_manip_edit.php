@@ -97,9 +97,18 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 		require_once "lib_analytics.php";
 		// maybe slow and error-prone
 		
-		 if (!empty($_REQUEST["analytics_device_id"])) { // get all information on device AND type
+		if (!empty($_REQUEST["analytics_device_id"])) { // get all information on device AND type
 			$device=getAnalyticsDevice($_REQUEST["analytics_device_id"]);
 		}
+		elseif (!empty($_REQUEST["analytics_type_id"])) {
+			list($device)=mysql_select_array(array(
+				"table" => "analytics_type", 
+				"dbs" => -1, 
+				"filter" => "analytics_type_id=".fixNull($_REQUEST["analytics_type_id"]), 
+				"limit" => 1, 
+			));
+		}
+		//var_dump($device);die("X");
 		
 		 if (!empty($_REQUEST["analytics_method_id"])) { // get all information on method, maybe there is none (is ok)
 			list($method)=mysql_select_array(array(
@@ -199,7 +208,7 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 			$edited_data_results=mysql_select_array(array(
 				"table" => "analytical_data_spz", 
 				"dbs" => -1, 
-				"filter" => "analytical_data_id=".fixNull($pk), 
+				"filter" => "analytical_data.analytical_data_id=".fixNull($pk), 
 				"limit" => 1, 
 			));
 			$raw_data["zipdata"]=$edited_data_results[0]["analytical_data_blob"];
@@ -901,7 +910,7 @@ function performEdit($table,$db_id,$dbObj,$paramHash=array()) {
 			
 			// assign chemical_storage_type
 			$sql_query[]="DELETE FROM chemical_storage_chemical_storage_type WHERE chemical_storage_id=".$pk.";";
-			if (count($_REQUEST["chemical_storage_type"])) {
+			if ($_REQUEST["chemical_storage_type"]) {
 				foreach ($_REQUEST["chemical_storage_type"] as $chemical_storage_type_id) {
 					if (is_numeric($chemical_storage_type_id)) {
 						$sql_query[]="INSERT INTO chemical_storage_chemical_storage_type (chemical_storage_type_id,chemical_storage_id) ".
@@ -993,6 +1002,66 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 		$result=performQueries($sql_query,$dbObj); // singleUpdate
 	break;
 	
+	case "data_publication":
+		if (empty($_REQUEST["publication_name"])) {
+			return array(FAILURE,s("error_no_publication_name"));
+		}
+		if (empty($_REQUEST["literature_id"]) && (!empty($_REQUEST["authors"]) || !empty($_REQUEST["literature_year"]) || !empty($_REQUEST["literature_title"]))) { // add or edit molecule if necessary
+			performEdit("literature",$db_id,$dbObj);
+		}
+		if (empty($pk)) {
+			$createArr=SQLgetCreateRecord($table,$now,true);
+			$createArr["data_publication_uid"]="UUID()";
+			$createArr["publication_status"]=1;
+			$pk=getInsertPk($table,$createArr,$db); // cmdINSERT
+			$_REQUEST["data_publication_id"]=$pk;
+		}
+		
+		// Zuordnungen aktualisieren
+		$ref_table_names=array("reaction","analytical_data");
+		foreach ($ref_table_names as $ref_table_name) {
+			$list_int_name="publication_".$ref_table_name;
+			if (is_array($_REQUEST[$list_int_name])) foreach ($_REQUEST[$list_int_name] as $UID) {
+				// remove duplicate lines automatically
+				$desired_action=getDesiredAction($list_int_name,$UID);
+				switch($desired_action) {
+				case "del":
+					$sql_query[]="DELETE FROM ".$list_int_name." WHERE ".nvpUID($list_int_name,$UID,$list_int_name."_id",SQL_NUM,true).";";
+				break;
+				case "add":
+				case "update":
+					$pk2=getValueUID($list_int_name,$UID,$list_int_name."_id");
+
+					if (empty($pk2)) {
+						$createArr=SQLgetCreateRecord($list_int_name,$now,true);
+						$createArr[$list_int_name."_uid"]="UUID()";
+						$createArr["data_publication_id"]=$pk;
+						$pk2=getInsertPk($list_int_name,$createArr,$dbObj); // cmdINSERTsub
+					}
+
+					$sql_query[]="UPDATE ".$list_int_name." SET ".
+						nvpUID($list_int_name,$UID,$ref_table_name."_id",SQL_NUM).
+						nvpUID($list_int_name,$UID,$list_int_name."_text",SQL_TEXT).
+						SQLgetChangeRecord($list_int_name,$now).
+						getPkCondition($list_int_name,$pk2);
+				break;
+				}
+			}
+		}
+		
+		$sql_query[]="UPDATE data_publication SET ".
+			nvp("publication_name",SQL_TEXT).
+			nvp("publication_license",SQL_TEXT).
+			nvp("publication_doi",SQL_TEXT).
+			nvp("publication_text",SQL_TEXT).
+			nvp("publication_db_id",SQL_NUM).
+			nvp("literature_id",SQL_NUM).
+			SQLgetChangeRecord($table,$now).
+			getPkCondition($table,$pk);
+		
+		$result=performQueries($sql_query,$db); // singleUpdate
+	break;
+	
 	case "institution":
 		if (empty($_REQUEST[ $paramHash["prefix"]."institution_name" ])) {
 			return array(FAILURE,s("error_no_institution_name"));
@@ -1048,7 +1117,6 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 			$createArr=SQLgetCreateRecord($table,$now,true);
 			$createArr["lab_journal_status"]=1;
 			$createArr["lab_journal_uid"]="UUID()";
-			addNvp($createArr,"person_id",SQL_NUM);
 			addNvp($createArr,"lab_journal_code",SQL_TEXT);
 			$pk=getInsertPk($table,$createArr,$dbObj); // cmdINSERT
 			
@@ -1084,6 +1152,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 		}
 		
 		$sql_query[]="UPDATE lab_journal SET  ".
+			nvp("person_id",SQL_NUM).
 			nvp("default_copy_target",SQL_NUM).
 			SQLgetChangeRecord($table,$now).
 			getPkCondition($table,$pk);
@@ -1102,6 +1171,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 		
 		if (empty($pk)) {
 			$createArr=SQLgetCreateRecord($table,$now,true);
+			$createArr["literature_uid"]="UUID()";
 			$pk=getInsertPk($table,$createArr,$dbObj); // cmdINSERT
 			$_REQUEST["literature_id"]=$pk;
 		}
@@ -1417,7 +1487,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 
 		// assign molecule_type
 		$sql_query[]="DELETE FROM molecule_molecule_type WHERE molecule_id=".$pk.";";
-		if (count($_REQUEST["molecule_type"])) {
+		if ($_REQUEST["molecule_type"]) {
 			foreach ($_REQUEST["molecule_type"] as $molecule_type_id) {
 				if (is_numeric($molecule_type_id)) {
 					$sql_query[]="INSERT INTO molecule_molecule_type (molecule_type_id,molecule_id) ".
@@ -1943,6 +2013,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 		}
 		if (empty($pk)) {
 			$createArr=SQLgetCreateRecord($table,$now,true);
+			$createArr["project_uid"]="UUID()";
 			$pk=getInsertPk($table,$createArr,$db); // cmdINSERT
 		}
 		
@@ -2044,8 +2115,8 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 				}*/
 			}
 			
-			// ist der neue Status >= der alte ?
-			if ($reaction_result["status"]>$_REQUEST["status"]) {
+			// ist der neue Status >= der alte ? admin darf zurückstellen
+			if (($permissions & _lj_admin)==0 && $reaction_result["status"]>$_REQUEST["status"]) {
 				$_REQUEST["status"]=$reaction_result["status"]; // nicht verändern
 			}
 		}
@@ -2179,6 +2250,7 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 					
 					if (empty($pk2)) {
 						$createArr=array();
+						$createArr["reaction_chemical_uid"]="UUID()";
 						addNvp($createArr,"reaction_id",SQL_NUM);
 						$pk2=getInsertPk("reaction_chemical",$createArr,$dbObj); // cmdINSERTsub
 					}

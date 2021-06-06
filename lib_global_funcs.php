@@ -209,8 +209,19 @@ function l($langToUse,$key,$index=null) {
 }
 
 function s($key,$index=null) {
-	global $lang;
+	global $lang,$langKeyMapping;
+	$mappedKey=$langKeyMapping[$key];
+	if (!isEmptyStr($mappedKey)) {
+		$key=$mappedKey;
+	}
 	return l($lang,$key,$index);
+}
+
+function s_rnd($key) {
+	global $lang,$localizedString;
+	
+	$strArray=$localizedString[$lang][$key];
+	return $strArray[random_int(0,count($strArray)-1)];
 }
 
 function a($key,$mask) { // gibt array für Bitmaske zurück
@@ -338,11 +349,6 @@ function showTopLink($paramHash) { // link in topnav
 	ifnotempty(" target=\"",$paramHash["target"],"\"").">".$paramHash["text"]."</a></td>\n";
 }
 
-function getSupplierLogo(& $supplier_obj,$paramHash=array()) {
-	$border=& $paramHash["border"];
-	return "<img src=\"lib/".$supplier_obj["logo"]."\"".getTooltipP($supplier_obj["name"])." height=\"".$supplier_obj["height"]."\"".(isEmptyStr($border)?"":" border=\"".$border."\"").">";
-}
-
 function swap(&$v1,&$v2) {
 	$temp=$v1;
 	$v1=$v2;
@@ -389,6 +395,10 @@ function getVarArray($name,$variables) { // erzeugt JS-Array mit abwechselnd "Te
 	}
 	$retval.=");\n";
 	return $retval;
+}
+
+function arrCount($arr) {
+	return is_array($arr) ? count($arr) : 0;
 }
 
 function multi_in_array($needle,$haystack,$all=false) { // prüft, ob ein Wert aus $needle ($all=false) oder alle Werte aus needle in $haystack enthalten sind
@@ -748,8 +758,9 @@ _script;
 function addRecordDefinition(& $fields,$tabname,$action) { // Array
 	$fields[getActionBy($tabname,$action)]=array("type" => "TINYTEXT", "search" => "auto", );
 	$fields[getActionWhen($tabname,$action)]=array("type" => "DATETIME", "search" => "auto", );
-	$fields[$tabname."_".$action."_hashver"]=array("type" => "INT", "flags" => FIELD_MD5, );
-	$fields[$tabname."_".$action."_md5"]=array("type" => "VARBINARY(128)", "flags" => FIELD_MD5, );
+	// never used, was just wasting space
+//	$fields[$tabname."_".$action."_hashver"]=array("type" => "INT", "flags" => FIELD_MD5, );
+//	$fields[$tabname."_".$action."_md5"]=array("type" => "VARBINARY(128)", "flags" => FIELD_MD5, );
 }
 
 function addSuffixColumn(& $fields,$tabname,$suffix,$priority=null) {
@@ -803,8 +814,9 @@ function addBarcodeColumn($tabname) { // Array
 
 function addPkColumn($tabname) {
 	global $tables;
+	$pkFormat=ifempty($tables[$tabname]["pkDef"],SQLpkFormat);
 	$tables[$tabname]["fields"][ getPkName($tabname) ]=array(
-		"type" => "INT NOT NULL AUTO_INCREMENT PRIMARY KEY", 
+		"type" => $pkFormat.SQLpkSuffix, 
 		"pk" => true,
 	);
 }
@@ -1265,7 +1277,7 @@ function completeDoc() {
 	// schreibt Debug-Informationen ans Ende, schließt DB und Session (eigentlich überflüssig, passiert am Ende sowieso
 	global $db,$other_db_data;
 	// close open connections to other dbs
-	for ($a=0;$a<count($other_db_data);$a++) {
+	if (is_array($other_db_data)) for ($a=0;$a<count($other_db_data);$a++) {
 		$conn=& $other_db_data[$a]["connection"];
 		if ($conn) {
 			mysqli_close($conn);

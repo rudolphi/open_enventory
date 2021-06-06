@@ -95,12 +95,12 @@ $emp_form_words=array(
 );
 
 function checkResults($results,$or_words,$field="name") {
-	if (!is_array($word)) {
-		$word=array(array($word));
+	if (!is_array($or_words)) {
+		$or_words=array(array($or_words));
 	}
 	for ($c=0;$c<count($or_words);$c++) { // OR
 		$word=$or_words[$c];
-		for ($a=0;$a<count($results);$a++) {
+		if (is_array($results)) for ($a=0;$a<count($results);$a++) {
 			for ($b=0;$b<count($word);$b++) { // AND
 				if (strpos(strtolower($results[$a][$field]),$word[$b])===FALSE) {
 					continue 2; // next result
@@ -114,7 +114,7 @@ function checkResults($results,$or_words,$field="name") {
 
 function showSupplierMessage($supplierCode,$success) {
 	global $suppliers;
-	echo getSupplierLogo($suppliers[$supplierCode])." <span style=\"color:".($success!==FALSE?"green\">".s("success"):"red;font-size:24pt\">".s("fail"))."</span><br>";
+	echo $suppliers[$supplierCode]->getSupplierLogo()." <span style=\"color:".($success!==FALSE?"green\">".s("success"):"red;font-size:24pt\">".s("fail"))."</span><br>";
 	flush();
 }
 
@@ -134,7 +134,7 @@ function checkStrSearch() {
 		$strSearch=array($supplierCode);
 		$result=strSearch($molfile);
 		//~ print_r($result);
-		$bestHit=$suppliers[ $supplierCode ]["getBestHit"]($result["hitlist"]);
+		$bestHit=$suppliers[ $supplierCode ]->getBestHit($result["hitlist"]);
 		//~ var_dump($result["hitlist"][$bestHit]["cas_nr"]);
 		showSupplierMessage($supplierCode,$result["hitlist"][$bestHit]["cas_nr"]==$molfile_cas);
 	}
@@ -148,31 +148,31 @@ function performSingleCheck($type) {
 	for ($a=0;$a<count($steps);$a++) {
 		$supplierCode=$steps[$a];
 		
-		if ((is_array($suppliers[$supplierCode]["excludeFields"]) && in_array($type,$suppliers[$supplierCode]["excludeFields"]))
-			|| (is_array($suppliers[$supplierCode]["excludeTests"]) && in_array($type,$suppliers[$supplierCode]["excludeTests"]))) {
+		if ((is_array($suppliers[$supplierCode]->excludeFields) && in_array($type,$suppliers[$supplierCode]->excludeFields))
+			|| (is_array($suppliers[$supplierCode]->excludeTests) && in_array($type,$suppliers[$supplierCode]->excludeTests))) {
 			continue;
 		}
 		
 		switch ($type) {
 		case "molecule_name":
 		// Text search
-			$results=$suppliers[$supplierCode]["getHitlist"]($text,$type);
+			$results=$suppliers[$supplierCode]->getHitlist($text,$type);
 			$success=checkResults($results,$text);
 		break;
 		case "cas_nr":
 		// CAS search
-			$checkarray=$suppliers[$supplierCode]["testCas"];
-			if (!count($checkarray)) {
+			$checkarray=$suppliers[$supplierCode]->testCas;
+			if (!$checkarray) {
 				$checkarray=array($molfile_cas => $molfile_words);
 			}
 			
 			foreach ($checkarray as $cas => $words) {
-				$results=$suppliers[$supplierCode]["getHitlist"]($cas,$type,"ex");
+				$results=$suppliers[$supplierCode]->getHitlist($cas,$type,"ex");
 				$success=checkResults($results,$words);
 				
 				if ($success!==FALSE && !empty($results[$success]["supplierCode"]) && !empty($results[$success]["catNo"])) {
 					// check data acquisition
-					$data=$suppliers[ $results[$success]["supplierCode"] ]["getInfo"]($results[$success]["catNo"]);
+					$data=$suppliers[ $results[$success]["supplierCode"] ]->getInfo($results[$success]["catNo"]);
 					echo s("detail_page").": ";
 					showSupplierMessage($supplierCode,$data["cas_nr"]==$cas);
 				}
@@ -180,13 +180,13 @@ function performSingleCheck($type) {
 		break;
 		case "emp_formula":
 		// emp form search
-			$checkarray=$suppliers[$supplierCode]["testEmpFormula"];
-			if (!count($checkarray)) {
+			$checkarray=$suppliers[$supplierCode]->testEmpFormula;
+			if (!$checkarray) {
 				$checkarray=array($emp_form => $emp_form_words);
 			}
 			
 			foreach ($checkarray as $form => $words) {
-				$results=$suppliers[$supplierCode]["getHitlist"]($form,$type,"ex");
+				$results=$suppliers[$supplierCode]->getHitlist($form,$type,"ex");
 				$success=checkResults($results,$words);
 			}
 		break;

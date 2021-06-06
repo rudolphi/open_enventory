@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2006-2018 Felix Rudolphi and Lukas Goossen
+Copyright 2006-2020 Felix Rudolphi and Lukas Goossen
 open enventory is distributed under the terms of the GNU Affero General Public License, see COPYING for details. You can also find the license under http://www.gnu.org/licenses/agpl.txt
 
 open enventory is a registered trademark of Felix Rudolphi and Lukas Goossen. Usage of the name "open enventory" or the logo requires prior written permission of the trademark holders. 
@@ -987,14 +987,11 @@ Il sistema elettronico di inventario permette di accedere ai dati fisici ed alle
 	"rc_safety_s" => "S",
 	"rc_safety_p" => "P",
 	"print_all" => "Tutto",
-	"export_all" => "Tutto",
 	"print_selection" => "Datasets selezionati",
-	"export_selection" => "Datasets selezionati",
 	"print_range" => "Pagine",
 	//~ "printLJ_range" => "Entries",
 	"print_current" => "Pagina corrente",
 	"print_from_here" => "Pagine da qui", 
-	"export_current" => "Pagina corrente",
 	"output_type" => "Formato", 
 	"xls" => "Excel", 
 	"zip/xls" => "Excel con file aggiuntivi compressi in un file ZIP", 
@@ -1035,7 +1032,7 @@ Il sistema elettronico di inventario permette di accedere ai dati fisici ed alle
 	"TU_logos1" => "Loghi ed immagini di sfondo del ", 
 	"TU_logos2" => " sono protetti da copyright e/o marchi registrati del ", 
 	"other_brand" => "Tutti gli altri nomi di marche o prodotti e i loghi sono marchi registrati dei rispettivi proprietari, anche quando questo non sia esplicitamente dichiarato altrove.",
-	"artwork_by1" => "Tutte le icone ed i simboli eccetto le icone &quot;Print&quot; sono protette da  copyright 2006-2016 ", 
+	"artwork_by1" => "Tutte le icone ed i simboli eccetto le icone &quot;Print&quot; sono protette da  copyright 2006-2020 ", 
 	"developed_on1" => " è stato sviluppato su ", 
 	"developed_on2" => " ed è compatibile con ", 
 	"developed_on3" => " .", 

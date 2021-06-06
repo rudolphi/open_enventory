@@ -31,11 +31,11 @@ function getDefaultGlobalSettings() {
 
 		"links_in_topnav" => array(
 			"uni_logo" => array(
-				"url" => "http://www.uni-kl.de", 
+				"url" => "https://sourceforge.net/projects/enventory/", 
 				"target" => "_blank", 
-				"src" => "lib/uni-logo.png", 
-				"w" => "206", 
-				"h" => "56", 
+				"src" => "lib/open_env_logo.png", 
+				"w" => "240", 
+				"h" => "", 
 				"b" => "0", 
 			), 
 			"fb_logo" => array(
@@ -65,6 +65,13 @@ function getDefaultGlobalSettings() {
 			array("key" => "nmr", "analytics_type_name" => "nmr", "text" => "NMR", "showRxn" => false, "mixtureOnly" => false, ), 
 		), 
 		
+		"reaction_conditions" => array(
+			"solvent" => "1",
+			"solvent_amount" => "1",
+			"temperature" => "1",
+			"press" => "1",
+			"duration" => "1",
+		),
 		"applet_code" => "VectorMol",
 		"applet_rxn_code" => "VectorMol",
 		

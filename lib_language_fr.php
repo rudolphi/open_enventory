@@ -1,6 +1,6 @@
 <?php
 /*
-Copyright 2006-2018 Felix Rudolphi and Lukas Goossen
+Copyright 2006-2020 Felix Rudolphi and Lukas Goossen
 open enventory is distributed under the terms of the GNU Affero General Public License, see COPYING for details. You can also find the license under http://www.gnu.org/licenses/agpl.txt
 
 open enventory is a registered trademark of Felix Rudolphi and Lukas Goossen. Usage of the name "open enventory" or the logo requires prior written permission of the trademark holders. 
@@ -897,13 +897,10 @@ $localizedString["fr"]=Array(
 	"rc_safety_s" => "S",
 	"rc_safety_p" => "P",
 	"print_all" => "Tout",
-	"export_all" => "Tout",
-	"print_selection" => "sélection",
-	"export_selection" => "Sélection",
+	"print_selection" => "Sélection",
 	"print_range" => "Pages",
 	"print_current" => "Page actuelle",
 	"print_from_here" => "Pages à partir d'ici",
-	"export_current" => "Page actuelle",
 	"output_type" => "Format",
 	"xls" => "Excel",
 	"zip/xls" => "Excel avec fichiers additionnels dans le ZIP",
@@ -941,7 +938,7 @@ $localizedString["fr"]=Array(
 	"TU_logos1" => "Les logos et les images d'arrière-plan du ", 
 	"TU_logos2" => " sont protégés par copyright et/ou sont des marques déposées de ", 
 	"other_brand" => "Toute autre marque ou nom de produit et  logos sont des marques de leurs propriétaires respectifs, même si ce n'est pas explicité ailleurs.",
-	"artwork_by1" => "Toutes les icônes et les symboles sauf l'icône 'imprimer' sont sous copyright 2006-2016 ", 
+	"artwork_by1" => "Toutes les icônes et les symboles sauf l'icône 'imprimer' sont sous copyright 2006-2020 ", 
 	"developed_on1" => " a été développé sur ", 
 	"developed_on2" => " et est compatible avec ", 
 	"developed_on3" => " .", 

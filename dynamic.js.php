@@ -55,7 +55,10 @@ arrSymURL=".json_encode($arrSymURL).";
 var analytical_data_lines=".fixNull($analytical_data_lines).",analytical_data_cols=".fixNull($analytical_data_cols).",use_rs=".intval($g_settings["use_rs"]).",use_ghs=".intval($g_settings["use_ghs"]).";
 func_groups=".json_encode($func_groups).";\n";
 
-echo "var std_smiles=".fixStr($settings["std_smiles"]).",person_id=".fixNull($person_id).";\n";
+echo "var std_smiles=".fixStr($settings["std_smiles"]).","
+		. "jsDateFormat=".fixStr(ifempty(s("jsDateFormat"), jsDateFormat)).","
+		. "jsTimeFormat=".fixStr(ifempty(s("jsTimeFormat"), jsTimeFormat)).","
+		. "person_id=".fixNull($person_id).";\n";
 
 // language part
 
@@ -83,7 +86,7 @@ $trans_texts=array(
 	"nobody","enter_password1","enter_password2","delWarningUser", 
 	"sci_journal_name","sci_journal_abbrev",
 	"project_name",
-	"db_name",
+	"db_name","confirmSubmit1","confirmSubmit2","confirmSubmit3","confirmSubmit4","confirmSubmit5","confirmSubmit6",
 	"warn_change_price","from","to","split_count_question",
 	"trm_is_logged_in1","trm_is_logged_in2","trm_welcome1","trm_welcome2","trm_goodbye1","trm_goodbye2",
 	"fixed_costs","sonderchemikalien","lagerchemikalien","fixed_costs_share","flaschenmiete","days","name","amount","price","vat_rate","acc_no","beautifulCatNo","net_total","vat_sum","gross_total",

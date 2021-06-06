@@ -44,6 +44,69 @@ function getSelectButton($row) {
 	return "<a href=\"javascript:void transferPkToUID(&quot;".$table."&quot;,&quot;".$row["db_id"]."&quot;,&quot;".$row[$pk_name]."&quot;)\" class=\"imgButtonSm\"><img src=\"lib/select_sm.png\" border=\"0\"".getTooltip("do_select")."></a>";
 }
 
+function getSubmitSciflectionButton() {
+	global $permissions;
+	
+	if ($permissions & _lj_admin) {
+		return "<a id=\"submitDataPublication\" href=\"javascript:void submitDataPublication();\" class=\"imgButtonSm\"><img src=\"lib/data_publication_sm.png\" border=\"0\"".getTooltip("submitDataPublication")."> ".s("submitDataPublication")."</a><br/>";
+	}
+}
+function getSciflectionButton($showMenu=false) {
+	global $permissions;
+
+	// check if sciflection account exists, if not: signup button
+	list($sciflectionData) = mysql_select_array(array(
+		"table" => "other_db",
+		"dbs" => "-1",
+		"filter" => "host LIKE '" . SCIFLECTION_URL . "'",
+		"quick" => true,
+		"limit" => 1,
+	));
+	if (!$sciflectionData) {
+		if ($permissions & _lj_admin) {
+			$text=s_rnd("sciflectionQuote");
+			return "<a href=\"sciflectionSignup.php\" class=\"imgButtonSm\" title=".fixStr($text)."><img src=\"lib/sciflection_sm.png\" border=\"0\"" . getTooltip("sciflectionSignup") . ">" . strcut($text,25) . "</a>";
+		}
+		return "<a href=\"" . SCIFLECTION_URL . "\" class=\"imgButtonSm\"><img src=\"lib/sciflection_sm.png\" border=\"0\"" . getTooltipP("sciflection.com") . " target=\"_blank\">" . s("sciflectionAdmin") . "</a>";
+	}
+
+	$img = ($showMenu ? "share_sm.png" : "sciflection_sm.png");
+	$retval = "<a href=\"" . SCIFLECTION_URL . "\" class=\"imgButtonSm\" target=\"_blank\"><img src=\"lib/" . $img . "\" border=\"0\"" . getTooltipP("sciflection.com") . 
+			($showMenu ? " onMouseover=\"showOverlayId(this, &quot;shareMenu&quot;, 0,0,8);\"":"").
+			" target=\"_blank\"></a>";
+	
+	if ($showMenu) {
+		$retval .= "<div id=\"shareMenu\" class=\"list_options\" style=\"display:none;z-index:10000\" onMouseover=\"cancelOverlayTimeout();\" onMouseout=\"hideOverlayId(&quot;shareMenu&quot;, 200);\">".
+				getShareMenuContent().
+				"</div>";
+	}
+	return $retval;
+}
+
+function getShareMenuContent() {
+	global $permissions;
+	
+	// get newest prepared publications, max 5
+	$data_publications = mysql_select_array(array(
+		"table" => "data_publication",
+		"dbs" => "-1",
+		"filter" => "publication_status = 'prepared'",
+		"limit" => 5,
+	));
+	// option to create new one and add current entry
+	$retval = "";
+	foreach ($data_publications as $data_publication) {
+		$retval .= "<a href=\"javascript:void addThisToDataPublication(".$data_publication["data_publication_id"].");\" class=\"imgButtonSm menuButton\"><img src=\"lib/data_publication_sm.png\" border=\"0\"".getTooltip("addToDataPublication")."> ".$data_publication["publication_name"]."</a><br/>";
+	}
+	$retval .= "<a href=\"javascript:void addThisToDataPublication();\" class=\"imgButtonSm menuButton\"><img src=\"lib/data_publication_sm.png\" border=\"0\"".getTooltip("addToDataPublication")."> ".s("new")."</a><br/>";
+
+	if (($permissions & _lj_admin) && count($data_publications)) {
+		// link to unsubmitted publication list, if there is at least on unsubmitted
+		$retval .= "<a href=".fixStr("lj_main.php?desired_action=unsubmittedDataPublications&table=data_publication&".getSelfRef(array("~script~","table","cached_query","dbs","fields","order_by","db_id","pk","per_page","ref_cache_id")))." class=\"imgButtonSm menuButton\" target=\"_blank\"><img src=\"lib/data_publication_sm.png\" border=\"0\"".getTooltip("unsubmittedDataPublications").">".s("unsubmittedDataPublications")."</a>";
+	}
+	return $retval;
+}
+
 function listGetPrintButton() {
 	// Knopf übernehmen, setzt die molecule_id/chemical_storage_id und schließt das Fenster
 	return "<a href=\"javascript:void self.print()\" class=\"imgButtonSm\"><img src=\"lib/print_sm.png\" border=\"0\"".getTooltip("print")."></a>";
@@ -125,7 +188,7 @@ function getMessageButton() {
 }
 
 function alignHorizontal($iHTMLarray,$blockAlign="") {
-	if (count($iHTMLarray)==0) {
+	if (!$iHTMLarray) {
 		return "";
 	}
 	if (!is_array($iHTMLarray)) {
@@ -252,9 +315,8 @@ function getPrintMenu($baseTable="") {
 			//~ "langUseValues" => true, // obsolete
 			//~ "texts" => $print_what_texts, 
 		)).
-		"<input type=\"text\" id=\"print_range_input\" size=\"8\" onClick=\"$(&quot;print_range&quot;).checked=&quot;checked&quot; \" onKeyUp=\"printMenuKeyUp(event); \">";
-	
-	$retval.=showBr().
+		"<input type=\"text\" id=\"print_range_input\" size=\"8\" onClick=\"$(&quot;print_range&quot;).checked=&quot;checked&quot; \" onKeyUp=\"printMenuKeyUp(event); \">".
+		showBr().
 		showCheck(array(
 			"int_name" => "multi_page", 
 			"value" => ($baseTable=="settlement")?"1":"", 
@@ -284,6 +346,30 @@ function getPrintMenu($baseTable="") {
 <tbody><tr>
 <td><a href=\"javascript:printDetail(); \" class=\"imgButtonSm\"><img src=\"lib/print_sm.png\" border=\"0\"".getTooltip("print")."></a></td>
 <td><a href=\"javascript:showPrintMenu(false); \" class=\"imgButtonSm\"><img src=\"lib/cancel_sm.png\" border=\"0\"".getTooltip("cancel")."></a></td>
+</tr></tbody>
+</table></form></div>";
+	return $retval;
+}
+
+function getPrintPDFMenu() {
+	global $export_formats;
+	$retval.="<div id=\"pdfMenu\" style=\"display:none\"><form onSubmit=\"return false;\">".
+		s("downloadPDF").
+		showBr().
+		showSelect(array(
+			"int_name" => "pdf_what", 
+			"radioMode" => true, 
+			"int_names" => array("pdf_all","pdf_current",/*"pdf_selection",*/"pdf_range"), 
+			"value" => "pdf_all", 
+			//~ "langUseValues" => true, // obsolete
+		)).
+		"<input type=\"text\" id=\"pdf_range_input\" size=\"8\" onClick=\"$(&quot;pdf_range&quot;).checked=&quot;checked&quot; \" onKeyUp=\"pdfMenuKeyUp(event); \">".
+		showBr().
+		getHiddenSubmit().
+		"<table class=\"noborder\">
+<tbody><tr>
+<td><a href=\"javascript:startPDF(); \" class=\"imgButtonSm\"><img src=\"lib/report_download.png\" border=\"0\"".getTooltip("downloadPDF")."></a></td>
+<td><a href=\"javascript:showPDFMenu(false); \" class=\"imgButtonSm\"><img src=\"lib/cancel_sm.png\" border=\"0\"".getTooltip("cancel")."></a></td>
 </tr></tbody>
 </table></form></div>";
 	return $retval;

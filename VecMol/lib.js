@@ -3,6 +3,18 @@
 // for minification only
 prseInt=parseInt;
 
+function cancelEvent(e) {
+	if (isMSIE8orBelow) {
+		if (!e) e=window.event;
+		e.returnValue=F;
+		e.cancelBubble=T;
+	} else {
+		e.preventDefault();
+		e.stopPropagation();
+	}
+	return F;
+}
+
 function len(param) {
 	return param.length;
 }
@@ -107,6 +119,49 @@ function endswith(haystack,needle,caseSensitive) {
 	}
 	return (end==needle);
 }
+
+/*function strcut(string,maxlen,endtext,border) {
+	if (endtext==UNDF) {
+		endtext="...";
+	}
+	string=defBlank(string);
+	var textlen=len(string),cutText,spcpos;
+	if (textlen<=maxlen) {
+		return string;
+	}
+	maxlen-=len(endtext);
+	cutText=string.substr(0,maxlen);
+	if (border==UNDF) {
+		return cutText+endtext;
+	}
+	
+	spcpos=cutText.lastIndexOf(border);
+	if (spcpos==-1) {
+		spcpos=maxlen;
+	}
+	return cutText.substr(0,spcpos)+endtext;
+}
+
+function strrcut(string,maxlen,endtext,border) { // reverse end
+	if (endtext==UNDF) {
+		endtext="...";
+	}
+	string=defBlank(string);
+	var textlen=len(string),cutText,spcpos;
+	if (textlen<=maxlen) {
+		return string;
+	}
+	maxlen-=len(endtext);
+	cutText=string.substr(textlen-maxlen,maxlen);
+	if (border==UNDF) {
+		return cutText;
+	}
+	spcpos=cutText.indexOf(border);
+	if (spcpos==-1) {
+		spcpos=0;
+	}
+	return endtext+cutText.substr(spcpos);
+}*/
 
 function removePipes(text) { // remove | and make proper molfile
 	if (text==UNDF || text=="") {

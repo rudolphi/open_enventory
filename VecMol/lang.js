@@ -12,5 +12,5 @@ function loadLang() {
 
 function loadTooltips() {
 	// add tooltips to buttons
-	$(".button, .wTooltip").attr("title",function () { return s(this.id); });
+	$(".button, .wTooltip").attr("title",function () { return s(this.id); }).on("dragstart",cancelEvent);
 }
