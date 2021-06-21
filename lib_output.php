@@ -410,6 +410,14 @@ function getEditLink(& $row) { // stays in iframe
 	return "<a href=".fixStr(getEditURL($row))." class=\"imgButtonSm\"><img src=\"lib/details_sm.png\" border=\"0\"".getTooltip("details")."></a>";
 }
 
+function getFirstMoleculeProperty(& $row,$col) {
+	foreach ($row["molecule_property"] as $entry) {
+		if ($entry["class"]==$col) {
+			return formatRange($entry["value_low"],$entry["value_high"],$entry["unit"]);
+		}
+	}
+}
+
 function getFields(& $columns,$listvisible="") {
 	global $g_settings;
 	
@@ -1151,6 +1159,10 @@ function addTBodyCell(& $output,& $files,$idx,$subidx,& $fieldIdx,$row,$col,$par
 		$td="<td".$idText." class=\"numeric\">";
 		$retval=$row[$col];
 	break;
+	case "FP":
+		$retval=getFirstMoleculeProperty($row,$col);
+	break;
+		
 	
 	// date group------------------------------------------------------------------------------------------------------------------
 	// ordering
