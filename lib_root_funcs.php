@@ -435,6 +435,12 @@ function createDefaultTableEntries($tabname) {
 			break;
 			}
 		}
+	} elseif ($tabname == "person") {
+	    $sql_query[]="SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';";
+	    $sql_query[]="INSERT INTO ".$tabname." SET ".
+	   	    "person_id=0,".
+	   	    "username=\"root\"".
+	   	    ";";
 	}
 	performQueries($sql_query,$db);
 }
