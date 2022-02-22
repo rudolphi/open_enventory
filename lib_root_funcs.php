@@ -285,15 +285,11 @@ function getColumn($name,$data) { // Array
 	if (isset($data["default"])) {
 		$dataType.=" DEFAULT ".$data["default"];
 	}
-	
+
 	if (!empty($data["collate"])) {
 		$dataType.=" COLLATE ".$data["collate"];
 	}
-	
-	if (!empty($data["fk"])) {
-		$dataType.=" REFERENCES ".$data["fk"]."(".getShortPrimary($data["fk"]).")";
-	}
-	
+
 	$field_def=array(
 		"name" => $name, 
 		"def" => $dataType, 
@@ -439,6 +435,12 @@ function createDefaultTableEntries($tabname) {
 			break;
 			}
 		}
+	} elseif ($tabname == "person") {
+	    $sql_query[]="SET SESSION sql_mode='NO_AUTO_VALUE_ON_ZERO';";
+	    $sql_query[]="INSERT INTO ".$tabname." SET ".
+	   	    "person_id=0,".
+	   	    "username=\"root\"".
+	   	    ";";
 	}
 	performQueries($sql_query,$db);
 }
@@ -472,6 +474,36 @@ function createViews() {
 	foreach (array_keys($tables) as $tabname) {
 		createView($tabname);
 	}
+}
+
+function createTableConstraint($tabname)
+{
+    global $db,$tables;
+    $constraint_query = array();
+
+    $tabdata=& $tables[$tabname];
+    $constraint = 1;
+
+    if (is_array($tabdata["fields"])) foreach ($tabdata["fields"] as $name => $data) {
+        if (!empty($data["fk"])) {
+            $constraint_query [] =
+                "ALTER TABLE ".$tabname.
+                " ADD CONSTRAINT ".$tabname."_fk".$constraint.
+                " FOREIGN KEY (".$name.")".
+                " REFERENCES ".$data["fk"]."(".getShortPrimary($data["fk"]).")".
+                ";";
+            $constraint++;
+        }
+    }
+    performQueries($constraint_query, $db);
+}
+
+function createConstraints() {
+    global $tables;
+    $tabnames=array_keys($tables);
+    foreach ($tabnames as $tabname) {
+        createTableConstraint($tabname);
+    }
 }
 
 function containsInvalidChars($text) {
@@ -516,6 +548,7 @@ function setupInitTables($db_name) { // requires root
 		// Tabellen erstellen
 		createTables();
 		createViews();
+		createConstraints();
 		// Views erstellen (rely on tables)
 		setGVar("Version",currentVersion);
 		$version=currentVersion;
