@@ -1,0 +1,100 @@
+<?php
+/*
+Copyright 2006-2018 Felix Rudolphi and Lukas Goossen
+open enventory is distributed under the terms of the GNU Affero General Public License, see COPYING for details. You can also find the license under http://www.gnu.org/licenses/agpl.txt
+
+open enventory is a registered trademark of Felix Rudolphi and Lukas Goossen. Usage of the name "open enventory" or the logo requires prior written permission of the trademark holders. 
+
+This file is part of open enventory.
+
+open enventory is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+open enventory is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with open enventory.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+$GLOBALS["driver_code"]="rsc";
+$GLOBALS["publisher"][ $GLOBALS["driver_code"] ]=array(
+"driver" => $GLOBALS["driver_code"],
+"init" => create_function('',getLiteratureFunctionHeader().'
+$self["urls"]["server"]="http://www.rsc.org";
+'),
+"readPage" => create_function('$abs_page,$cookies',getLiteratureFunctionHeader().'
+$retval=$noResults;
+if (strpos($abs_page,$self["urls"]["server"])===FALSE) {
+	return $retval;
+}
+
+$abs_page=utf8_encode($abs_page);
+/*
+<a target="_blank" href="/ejarchive/P1/1985/P19850002167.pdf" title="Journals archive purchasers only - select to access article in PDF format  (ID: P19850002167)">PDF</a>
+
+<h3>Paper</h3><p><strong><i>J. Chem. Soc., Perkin Trans. 1</i></strong>, 1985, 2167 - 2172, <strong>DOI:</strong> 10.1039/P19850002167</p>
+
+<hr /><span style="font-size:150%;"><strong><font color="#9C0000">Some novel reactions of pyridinium-2-carboxylate betaines</font></strong><br class="cl" /><br /></span><p><strong>Alan R. Katritzky, Andrew J. Cozens, Andrea Ossana, Olga Rubio and Nadira Dabbas</strong></p>
+*/
+
+// get authors and title
+preg_match("/(?ims)<span style\=\"font\-size:150%;\">(.*?)<\/p>/",$abs_page,$preg_data);
+list($title,$authors)=explode("<p>",$preg_data[0],2);
+$retval["keywords"]=fixHtml($title);
+$retval["authors"]=fixHtml($authors);
+
+// get citation
+preg_match("/(?ims)<h3>.*?<\/h3>(.*?)<\/p>/",$abs_page,$preg_data);
+if (preg_match("/(?ims)<i>(.*?)<\/i>.*?(\d+),\D*<strong>(\d*)<\/strong>,\D*(\d*)\s*\-?\s*(\d+).*?DOI:(.*)/",$preg_data[1],$preg_data2)) {
+	$retval["sci_journal_abbrev"]=fixHtml($preg_data2[1]);
+	$retval["literature_volume"]=fixHtml($preg_data2[3]);
+	$retval["issue"]=""; // n.a.
+	$retval["literature_year"]=fixHtml($preg_data2[2]);
+	$retval["page_low"]=fixHtml($preg_data2[4]);
+	$retval["page_high"]=fixHtml($preg_data2[5]);
+	$retval["doi"]=fixHtml($preg_data2[6]);
+}
+elseif (preg_match("/(?ims)<i>(.*?)<\/i>.*?(\d+),\D*(\d*)\s*\-?\s*(\d+).*?DOI:(.*)/",$preg_data[1],$preg_data2)) {
+	$retval["sci_journal_abbrev"]=fixHtml($preg_data2[1]);
+	$retval["literature_volume"]=""; // n.a.
+	$retval["issue"]=""; // n.a.
+	$retval["literature_year"]=fixHtml($preg_data2[2]);
+	$retval["page_low"]=fixHtml($preg_data2[3]);
+	$retval["page_high"]=fixHtml($preg_data2[4]);
+	$retval["doi"]=fixHtml($preg_data2[5]);
+}
+elseif (preg_match("/(?ims)<i>(.*?)<\/i>.*?(\d+),\D*DOI:(.*)/",$preg_data[1],$preg_data2)) {
+	$retval["sci_journal_abbrev"]=fixHtml($preg_data2[1]);
+	$retval["literature_volume"]=""; // n.a.
+	$retval["issue"]=""; // n.a.
+	$retval["literature_year"]=fixHtml($preg_data2[2]);
+	$retval["page_low"]=""; // n.a.
+	$retval["page_high"]=""; // n.a.
+	$retval["doi"]=fixHtml($preg_data2[3]);	
+}
+
+// get link for PDF
+preg_match("/(?ims)<a[^>]*href\=\"([^\"]*)\"[^>]*>PDF<\/a>/",$abs_page,$preg_data);
+$url=$self["urls"]["server"].$preg_data[1];
+
+//~ print_r($cookies);
+$a=@http_get($url,array("redirect" => maxRedir, "useragent" => uA, "cookies" => $cookies, ));
+if (!empty($a)) {
+	$retval["literature_blob"]=http_parse_message($a)->body;
+	if (isPDF($retval["literature_blob"])) {
+		$retval["literature_mime"]=http_parse_message($a)->headers["Content-Type"];
+	}
+	else {
+		unset($retval["literature_blob"]);
+	}
+}
+
+return $retval;
+'),
+);
+?>

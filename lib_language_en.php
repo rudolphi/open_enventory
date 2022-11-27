@@ -153,8 +153,8 @@ $localizedString["en"]=Array(
 	"structure" => "structure",
 	"chemical_storage_properties" => "properties",
 	"storage" => "storage",
-	"welcome_all_subject" => "Welcome to the list of chemicals of the ".$g_settings["organisation_name"].".",
-	"welcome_all" => "<p>Welcome to the list of chemicals of the ".$g_settings["organisation_name"].". 
+	"welcome_all_subject" => "Welcome to the list of chemicals of the ".($g_settings["organisation_name"]??null).".",
+	"welcome_all" => "<p>Welcome to the list of chemicals of the ".($g_settings["organisation_name"]??null).". 
 <p>This system was created to minimize the effort for ordering new chemicals and administrate existing.
 <p>Chemicals available in the own group can be stored within the database to easily find the chemicals required. Search criteria are e.g. name, CAS registry number or chemical (sub-)structures that can be entered using a JAVA applet.
 <p>In addition to the own chemicals, you can also check the inventories of other groups, the chemicals storage and online databases of commercial suppliers. The current prices can be directly compared.
@@ -1275,6 +1275,9 @@ The electronic inventory system shows physical and safety data of all molecules,
 	"Ex_limits" => "Explosion limits", 
 	"Vap_press" => "Vapour pressure", 
 	"Kin_visc" => "Kinematic viscosity", 
+	"absorb_max" => "Absorption maximum", 
+	"emis_max" => "Emission maximum", 
+	"color_uv" => "Color under UV light", 
 	"" => "",
 	"molecule_auto" => "Name, CAS-No., sum form.", 
 	"" => "",

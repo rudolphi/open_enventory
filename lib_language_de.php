@@ -151,8 +151,8 @@ $localizedString["de"]=Array(
 	"structure" => "Struktur",
 	"chemical_storage_properties" => "Eigenschaften",
 	"storage" => "Lagerort",
-	"welcome_all_subject" => "Herzlich willkommen in der Chemikalienliste der ".$g_settings["organisation_name"].".",
-	"welcome_all" => "<p>Herzlich willkommen in der Chemikalienliste der ".$g_settings["organisation_name"].". 
+	"welcome_all_subject" => "Herzlich willkommen in der Chemikalienliste der ".($g_settings["organisation_name"]??null).".",
+	"welcome_all" => "<p>Herzlich willkommen in der Chemikalienliste der ".($g_settings["organisation_name"]??null).". 
 <p>&nbsp;
 <p>Dieses System wurde erstellt mit dem Ziel, den Arbeitsaufwand für die Bestellung von Chemikalien und die Verwaltung von Chemikalienbeständen auf ein Minimum zu reduzieren.
 <p>Chemikalien, die in der eigenen Arbeitsgruppe vorhanden sind, 
@@ -1285,6 +1285,9 @@ Das elektronische Inventarsystem zeigt Stoff- und Sicherheitsdaten aller Verbind
 	"Ex_limits" => "Explosionsgrenzen", 
 	"Vap_press" => "Dampfdruck", 
 	"Kin_visc" => "kinematische Viskosität", 
+	"absorb_max" => "Absorptionsmaximum", 
+	"emis_max" => "Emissionsmaximum", 
+	"color_uv" => "Farbe unter UV-Licht", 
   	"approx" => "ca.",
 	"" => "", 
 	"molecule_auto" => "Name, CAS-Nr., Summenf.", 

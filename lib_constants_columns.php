@@ -50,6 +50,9 @@ $columns["molecule"]=array(
 	"bp_short" => DEFAULT_OFF, 
 	"n_20" => DEFAULT_OFF, 
 	"FP" => DEFAULT_OFF, 
+	"absorb_max" => DEFAULT_OFF, 
+	"emis_max" => DEFAULT_OFF, 
+	"color_uv" => DEFAULT_OFF, 
 	"comment_mol" => DEFAULT_OFF, 
 	"links_mol" => DEFAULT_ON, 
 );

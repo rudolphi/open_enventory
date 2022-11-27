@@ -1,0 +1,100 @@
+<?php
+/*
+Copyright 2006-2018 Felix Rudolphi and Lukas Goossen
+open enventory is distributed under the terms of the GNU Affero General Public License, see COPYING for details. You can also find the license under http://www.gnu.org/licenses/agpl.txt
+
+open enventory is a registered trademark of Felix Rudolphi and Lukas Goossen. Usage of the name "open enventory" or the logo requires prior written permission of the trademark holders. 
+
+This file is part of open enventory.
+
+open enventory is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+open enventory is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with open enventory.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+$GLOBALS["driver_code"]="elsevier";
+$GLOBALS["publisher"][ $GLOBALS["driver_code"] ]=array(
+"driver" => $GLOBALS["driver_code"],
+"init" => create_function('',getLiteratureFunctionHeader().'
+$self["urls"]["server"]="http://www.sciencedirect.com";
+'),
+"readPage" => create_function('$abs_page,$cookies',getLiteratureFunctionHeader().'
+$retval=$noResults;
+if (strpos($abs_page,$self["urls"]["server"])===FALSE) {
+	return $retval;
+}
+$cookies=arr_merge(getCookies($abs_page),$cookies);
+
+$abs_page=@http_parse_message($abs_page)->body;
+
+/*
+<div id="artiHead" class="artiHead" style="padding:0 0 15px 0;">
+
+<a href="/science/journal/00404020"><b>Tetrahedron</b></a><br>
+<a href="/science?_ob=PublicationURL&_tockey=%23TOC%235289%231988%23999559976%23241689%23FLP%23&_cdi=5289&_pubType=J&view=c&_auth=y&_acct=C000061614&_version=1&_urlVersion=0&_userid=3864768&md5=fe74d14ead3ec5f01ae5af59e3be63a0">
+
+
+Volume 44, Issue 23</a>, 
+
+
+1988,
+
+
+Pages 7271-7282
+
+
+
+</div>
+
+<a href="http://dx.doi.org/10.1016/S0040-4020(01)86099-3"
+*/
+
+// get authors and title
+preg_match("/(?ims)<div id\=\"articleContent\"(.*?)<div class\=\"articleText authorsNoEnt\">/",$abs_page,$preg_data);
+list($title,$authors)=explode("<strong>",$preg_data[0],2);
+$retval["keywords"]=fixHtml($title,"UTF-8");
+$retval["authors"]=fixHtml(removeHtmlParts($authors,"sup"),"UTF-8"); // get rid of stars etc
+
+// get doi
+preg_match("/(?ims)<a[^>]*href\=\"http:\/\/dx\.doi\.org\/([^\"]*)\"[^>]*>/",$abs_page,$preg_data);
+$retval["doi"]=$preg_data[1];
+
+// get citation
+preg_match("/(?ims)<div id\=\"artiHead\"(.*?)<\/div>/",$abs_page,$preg_data);
+preg_match("/(?ims)(.*?)\s+Volume\s+(\d+),\s*Issue\s+(\d+),\s*(?:\d+\s+[a-zA-Z]+\s+)?(\d+),\s*Pages?\s+(\d*)\-?(\d+)/",fixHtml($preg_data[0]),$preg_data);
+
+$retval["sci_journal_name"]=fixHtml($preg_data[1],"UTF-8");
+$retval["literature_volume"]=fixHtml($preg_data[2]);
+$retval["issue"]=fixHtml($preg_data[3]);
+$retval["literature_year"]=fixHtml($preg_data[4]);
+$retval["page_low"]=fixHtml($preg_data[5]);
+$retval["page_high"]=fixHtml($preg_data[6]);
+
+// get link for PDF
+preg_match("/(?ims)<a[^>]*href\=\"([^\"]*)\"[^>]*>[^<]*PDF[^<]*<\/a>/",$abs_page,$preg_data);
+$url=$preg_data[1];
+//~ print_r($cookies);
+$a=@http_get($url,array("redirect" => maxRedir, "useragent" => uA, "cookies" => $cookies, ));
+if (!empty($a)) {
+	$retval["literature_blob"]=http_parse_message($a)->body;
+	if (isPDF($retval["literature_blob"])) {
+		$retval["literature_mime"]=http_parse_message($a)->headers["Content-Type"];
+	}
+	else {
+		unset($retval["literature_blob"]);
+	}
+}
+
+return $retval;
+'),
+);
+?>

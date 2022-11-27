@@ -1,0 +1,140 @@
+<?php
+/*
+Copyright 2006-2018 Felix Rudolphi and Lukas Goossen
+open enventory is distributed under the terms of the GNU Affero General Public License, see COPYING for details. You can also find the license under http://www.gnu.org/licenses/agpl.txt
+
+open enventory is a registered trademark of Felix Rudolphi and Lukas Goossen. Usage of the name "open enventory" or the logo requires prior written permission of the trademark holders. 
+
+This file is part of open enventory.
+
+open enventory is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+open enventory is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU Affero General Public License for more details.
+
+You should have received a copy of the GNU Affero General Public License
+along with open enventory.  If not, see <http://www.gnu.org/licenses/>.
+*/
+
+$GLOBALS["driver_code"]="vch";
+$GLOBALS["publisher"][ $GLOBALS["driver_code"] ]=array(
+"driver" => $GLOBALS["driver_code"], 
+"init" => create_function('',getLiteratureFunctionHeader().'
+	$self["urls"]["server"]="http://wiley.com";
+	$self["urls"]["pdf"]="http://download.interscience.wiley.com";
+'), 
+"readPage" => create_function('$abs_page,$cookies',getLiteratureFunctionHeader().'
+$retval=$noResults;
+if (strpos($abs_page,$self["urls"]["server"])===FALSE) {
+	return $retval;
+}
+
+// find authors, journal, year, volume, issue (if any), page-range
+/* read meta tags
+<meta name="citation_authors" content="Lukas&nbsp;J. Goo&szlig;en, Felix Rudolphi, Christoph Oppel, Nuria Rodr&iacute;guez" />
+<meta name="citation_title" content="Synthese von Ketonen aus &alpha;-Oxocarboxylaten und Arylbromiden durch Cu/Pd-katalysierte decarboxylierende Kreuzkupplung&#13;" />
+<meta name="citation_date" content="Mar 10 2008" />
+<meta name="citation_volume" content="120" />
+<meta name="citation_issue" content="16" />
+<meta name="citation_firstpage" content="3085" />
+<meta name="citation_lastpage" content="3088" />
+<meta name="citation_doi" content="10.1002/ange.200705127" />
+<meta name="citation_abstract_html_url" content="/journal/117930776/abstract" />
+<meta name="citation_pdf_url" content="http://www3.interscience.wiley.com/resolve/doi?DOI=10.1002/ange.200705127" />
+<meta name="citation_issn" content="1521-3757" />
+<meta name="citation_language" content="en" />
+*/
+if (preg_match_all("/(?ims)<meta name\=\"citation_(.*?)\" content\=\"([^\"]*)\"/",$abs_page,$meta_matches,PREG_SET_ORDER)) {
+	//~ print_r($meta_matches);
+	$earlyView=false;
+	
+	foreach ($meta_matches as $match_data) {
+		$value=fixHtml($match_data[2],"UTF-8");
+		switch ($match_data[1]) {
+		case "journal_title": // search for this in table sci_journal
+			$retval["sci_journal_name"]=$value;
+		break;
+		case "authors":
+			$retval["authors"]=$value;
+		break;
+		case "date":
+			$date=date_parse($value);
+			$retval["literature_year"]=$date["year"];
+		break;
+		case "volume":
+			$retval["literature_volume"]=$value;
+		break;
+		case "issue":
+			$retval["issue"]=$value;
+		break;
+		case "firstpage":
+			if ($value=="NA") {
+				$earlyView=true;
+			}
+			else {
+				$retval["page_low"]=$value;
+			}
+		break;
+		case "lastpage":
+			if ($value=="NA") {
+				$earlyView=true;
+			}
+			else {
+				$retval["page_high"]=$value;
+			}
+		break;
+		case "doi":
+			$retval["doi"]=$match_data[2];
+		break;
+		case "title":
+			$retval["keywords"]=$value;
+		break;
+		//~ case "pdf_url":
+			//~ $pdf_url=parse_url($value); // does not work, see below
+		//~ break;
+		}
+	}
+	
+	$pdf_url=parse_url($self["urls"]["pdf"]);
+	
+	if ($earlyView) {
+		unset($retval["literature_volume"]);
+		unset($retval["issue"]);
+	}
+	
+	// Received: 22 July 1992
+	preg_match("/(?ims)Received:\s+\d+\s+[a-zA-Z]+\s+(\d+)/",$abs_page,$preg_data);
+	$date=date_parse($preg_data[1]);
+	if (!empty($date["year"]) && abs($retval["literature_year"]-$date["year"])>1) { // overwrite, was put online at much later date, so received-date is the much better guess
+		$retval["literature_year"]=$date["year"];
+	}
+	
+	// download PDF, needs the right cookies
+	preg_match("/(?ims)<a .*?href=\"([^\"]*)\">PDF<\/a>/",$abs_page,$pdf_link);
+	$url=get_redir_url($pdf_link[1],$pdf_url);
+	$a=@http_get($url,array("redirect" => maxRedir, "useragent" => uA, "cookies" => $cookies, ));
+	// parse cookies
+	$cookies=arr_merge(getCookies($a),$cookies);
+	// get URL
+	preg_match("/(?ims)<frame src=\"([^\"]*)\" name\=\"main\" id\=\"main\"/",$a,$pdf_link);
+	$url=get_redir_url($pdf_link[1],$pdf_url);
+	$a=@http_get($url,array("redirect" => maxRedir, "useragent" => uA, "cookies" => $cookies, ));
+	if (!empty($a)) {
+		$retval["literature_blob"]=http_parse_message($a)->body;
+		if (isPDF($retval["literature_blob"])) {
+			$retval["literature_mime"]=http_parse_message($a)->headers["Content-Type"];
+		}
+		else {
+			unset($retval["literature_blob"]);
+		}
+	}
+}
+return $retval;
+'), 
+);
+?>
