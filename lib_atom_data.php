@@ -221,7 +221,7 @@ function readSumFormula($emp_formulaStr,$paramHash=array()) { // keine Klammern,
 	foreach ($molecule["emp_formula"] as $sym => $number) {
 		$molecule["mw"]=($molecule["mw"]??0)+$number*getAtomMass($sym);
 		if ($sym!="H") {
-			$molecule["mw_noH"]+=$number*getAtomMass($sym);
+			$molecule["mw_noH"]=($molecule["mw_noH"]??0)+$number*getAtomMass($sym);
 		}
 	}
 	if (!$paramHash["noFingerprint"]) {
