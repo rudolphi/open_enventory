@@ -1945,9 +1945,12 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 			
 			// delete remainders of an old user with this name
 			//~ $user=fixStrSQL($_REQUEST["username"])."@".fixStrSQL($_REQUEST["remote_host"]);  // CHKN - should this not be 'php_server' to be consistent?
-			mysqli_query($db,"GRANT USAGE ON *.* TO ".$current_user.";");  # CHKN added back compatibility for MySQL < 5.7 that has no DROP USER IF EXISTS
-			mysqli_query($db,"DROP USER ".$current_user.";"); // result unimportant
-			// FIXME
+			try {
+				mysqli_query($db,"GRANT USAGE ON *.* TO ".$current_user.";");  # CHKN added back compatibility for MySQL < 5.7 that has no DROP USER IF EXISTS
+				mysqli_query($db,"DROP USER ".$current_user.";"); // result unimportant
+				// FIXME
+			} catch (Exception $e) {
+			}
 			
 			$sql_query=array(
 				// Benutzer erstellen
@@ -2044,7 +2047,10 @@ WHERE chemical_storage_id=".fixNull($pk).";";
 			if (!empty($_REQUEST["new_password"]??"")) { // otherwise no change
 				$sql_query[]="SET PASSWORD FOR ".$current_user." = PASSWORD(".fixStrSQL($_REQUEST["new_password"]).");";
 			}
-			mysqli_query($db,"REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$current_user.";"); // ignore errors
+			try {
+				mysqli_query($db,"REVOKE ALL PRIVILEGES, GRANT OPTION FROM ".$current_user.";"); // ignore errors
+			} catch (Exception $e) {
+			}
 			if (!($_REQUEST["person_disabled"]??false)) { // no privileges otherwise
 				$sql_query=array_merge($sql_query,getGrantArray($_REQUEST["permissions"],$current_user,$_REQUEST["username"],$pk,$db_name));
 			}
