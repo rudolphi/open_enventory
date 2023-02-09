@@ -221,8 +221,9 @@ function s_rnd($key) {
 	global $lang,$localizedString;
 	
 	$strArray=$localizedString[$lang][$key] ?? null;
-	if (is_array($strArray)) {
-		return $strArray[random_int(0,count($strArray)-1)];
+	$sz=arrCount($strArray);
+	if ($sz) {
+		return $strArray[random_int(0,$sz-1)];
 	}
 }
 
