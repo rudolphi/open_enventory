@@ -548,7 +548,7 @@ echo "function barcodeRead(barcode) {
 	// barcodes für datensatz
 	var url="checkBarcodeAsync.php?tables[]="+table+"
 END;
-if ($table=="molecule" && $_REQUEST["desired_action"]=="new") {
+if ($table=="molecule" && ($_REQUEST["desired_action"]??null)=="new") {
 	echo "&tables[]=chemical_storage";
 }
 echo <<<END
