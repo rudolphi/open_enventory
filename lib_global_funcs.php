@@ -49,9 +49,7 @@ if (is_file("lib_customization".customization.".php")) {
 require_once "lib_language.php";
 require_once "File/Archive/Reader/MimeList.php";
 
-if (@$_REQUEST["debug"]??""=="true") {
-	$debug=true;
-}
+$debug=(@$_REQUEST["debug"]??""=="true");
 
 function getSetting($key,$default="-1") {
 	global $settings,$g_settings;
@@ -133,7 +131,7 @@ function dump_lang_stats() {
 	global $langStats;
 	$filename="/tmp/lang_stats.txt";
 	// load old stats
-	$oldLangStats=unserialize(@file_get_contents($filename));
+	$oldLangStats=oe_unserialize(@file_get_contents($filename));
 	// add new
 	$langStats=arr_merge($langStats,$oldLangStats);
 	// write out
@@ -423,6 +421,12 @@ function multi_in_array($needle,$haystack,$all=false) { // prüft, ob ein Wert a
 	}
 }
 
+function oe_unserialize($data) {
+	if (!is_null($data)) {
+		return unserialize($data, array("allowed_classes" => false));
+	}
+}
+
 function getGVar($name) {
 	// gibt alle globalen Einstellung aus der DB zurück
 	list($result)=array_pad(mysql_select_array(array(
@@ -433,7 +437,7 @@ function getGVar($name) {
 		"noErrors" => true, 
 	)),1,null);
 	if ($result) {
-		return unserialize($result["value"]);
+		return oe_unserialize($result["value"]);
 	}
 }
 
@@ -1068,7 +1072,7 @@ script."
 }
 
 function getLoginURL() {
-	global $permissions,$settings,$loginTargets;
+	global $settings,$loginTargets;
 	if (empty($_REQUEST["loginTarget"] ?? "")) {
 		$_REQUEST["loginTarget"]=$settings["default_login_target"] ?? "";
 		if (empty($_REQUEST["loginTarget"])) {

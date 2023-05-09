@@ -197,7 +197,7 @@ elseif (
 	else {
 		$backURL="searchExt.php";
 		for ($a=0;$a<count($_REQUEST["order_alternative"]);$a++) {
-			$result[0]["order_alternative"][$a]=unserialize(stripslashes($_REQUEST["order_alternative"][$a]));
+			$result[0]["order_alternative"][$a]=oe_unserialize(stripslashes($_REQUEST["order_alternative"][$a]));
 			
 			if (!empty($result[0]["order_alternative"][$a]["amount_unit"])) {
 				$result[0]["order_alternative"][$a]["package_amount"]=$result[0]["order_alternative"][$a]["amount"];

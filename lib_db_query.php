@@ -194,7 +194,7 @@ function getSubqueryFilter($row,$criteria,$variables,$conjunction) { // erzeugt 
 function handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,& $results, $table, $flags) {
 							// Datenbankzugriff				Ergliste	Tabelle	Optionen
 	//~ echo($table."X".$flags."X");
-	global $query,$person_id,$lang_id;
+	global $query,$person_id,$lang_id,$lang;
 	
 	// echo "<pre>";
 	if (is_array($results)) for ($a=0;$a<count($results);$a++) { // each row
@@ -207,36 +207,40 @@ function handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,& $results, $
 			if (molecule_names_by_lang) {
 				$lang_id=$lang;
 			}
-			if (!empty($results[$a]["molecule_id"])) do { // wenn eigene Sprache keine Resultate liefert, wird Einschränkung aufgehoben
-				$subtable_name="molecule_names";
-				$subquery_base=getBaseTable($subtable_name);
-				$subtable=& $query[$subtable_name];
-				
-				// use archive_entity_id condition only for versioned subtables
-				if (archiveRequest($subquery_base)) {
-					$archiveQuery=" AND ".$subquery_base.".archive_entity_id=".$_REQUEST["archive_entity"];
-				}
-				else {
-					$archiveQuery="";
-				}
-				
-				$fields=array();
-				addFieldListForQuery($fields,$subtable_name,($db_id==-1));
-				
-				$query_str=joinIfNotEmpty($fields,",").
-					" FROM ".
-					getTableFrom($subtable_name,$db_id).
-					" WHERE molecule_id=".$results[$a]["molecule_id"].
-					ifnotempty(" AND language_id=\"",$lang_id,"\"").
-					$archiveQuery.
-					" ORDER BY is_standard DESC";
-				
-				$subresult=mysql_select_array_from_dbObj($query_str, $dbObj);
-				if ($lang_id=="") {
-					break; // sehr wichtig
-				}
-				$lang_id="";
-			} while (count($subresult)==0);
+			$subtable_name="molecule_names";
+
+			$tableFrom=getTableFrom($subtable_name,$db_id);
+			if ($tableFrom!="") {
+				if (!empty($results[$a]["molecule_id"])) do { // wenn eigene Sprache keine Resultate liefert, wird Einschränkung aufgehoben
+					$subquery_base=getBaseTable($subtable_name);
+					$subtable=& $query[$subtable_name];
+
+					// use archive_entity_id condition only for versioned subtables
+					if (archiveRequest($subquery_base)) {
+						$archiveQuery=" AND ".$subquery_base.".archive_entity_id=".$_REQUEST["archive_entity"];
+					}
+					else {
+						$archiveQuery="";
+					}
+
+					$fields=array();
+					addFieldListForQuery($fields,$subtable_name,($db_id==-1));
+
+					$query_str=joinIfNotEmpty($fields,",").
+						" FROM ".
+						getTableFrom($subtable_name,$db_id).
+						" WHERE molecule_id=".$results[$a]["molecule_id"].
+						ifnotempty(" AND language_id=\"",$lang_id,"\"").
+						$archiveQuery.
+						" ORDER BY is_standard DESC";
+
+					$subresult=mysql_select_array_from_dbObj($query_str, $dbObj);
+					if ($lang_id=="") {
+						break; // sehr wichtig
+					}
+					$lang_id="";
+				} while (count($subresult)==0);
+			}
 			if (count($subresult)) {
 				for ($b=0;$b<count($subresult);$b++) {
 					$results[$a]["molecule_names_array"][]=$subresult[$b]["molecule_name"];
@@ -313,7 +317,6 @@ function handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,& $results, $
 				if ($db_id!=-1) {
 					continue 2;
 				}
-				
 				$join_db_id=$results[$a][ $subquery["field_db_id"] ];
 				if (empty($join_db_id) || $join_db_id==-1) {
 					$extDb=$dbObj;
@@ -324,60 +327,66 @@ function handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,& $results, $
 						continue 2;
 					}
 				}
-				
-				$fields=array();
-				addFieldListForQuery($fields,$subtable_name,($db_id==-1));
-				$query_str=(($subtable["distinct"] ?? null)==DISTINCT?"DISTINCT ":"").joinIfNotEmpty($fields,",");
-				
-				// default filter
-				$filterText=getSubqueryFilter($results[$a], $subquery["criteria"], $subquery["variables"], $subquery["conjunction"] );
-				if (!empty($subtable["filter"]??"")) {
-					$filterText="(".$filterText.") AND ".$subtable["filter"];
-				}
-				
-				// ORDER BY
-				$order_obj=$subquery["order_obj"] ?? $subtable["order_obj"] ?? null; // Sortierung speziell für Unterabfrage gesetzt oder normale Sortierung der Tabelle nehmen
-				$order_by=getOrderStr($order_obj);
-				
-				$query_str.=" FROM ".
-					getTableFrom($subtable_name,$join_db_id). // may be remote or dummy
-					" WHERE ".
-					$filterText;
-				
-				// Distinct => group by
-				if (($subtable["distinct"] ?? null)==GROUP_BY) {
-					$query_str.=getGroupBy($subtable_name);
-				}
-				
-				$query_str.=ifnotempty(" ORDER BY ",$order_by ).
-					" LIMIT 1";
-				
-				list($subresult)=array_pad(mysql_select_array_from_dbObj($query_str,$extDb),1,null); // only one
-				
-				if ($flags & QUERY_SUBQUERY_FLAT_PRIORITY) {
-					$results[$a]=arr_merge($results[$a],$subresult); // give priority to values from original database query
-				}
-				else {
-					$results[$a]=arr_merge($subresult,$results[$a]); // give priority to values from original database query
+
+				$tableFrom=getTableFrom($subtable_name,$join_db_id);
+				if ($tableFrom!="") {
+					$fields=array();
+					addFieldListForQuery($fields,$subtable_name,($db_id==-1));
+					$query_str=(($subtable["distinct"] ?? null)==DISTINCT?"DISTINCT ":"").joinIfNotEmpty($fields,",");
+
+					// default filter
+					$filterText=getSubqueryFilter($results[$a], $subquery["criteria"], $subquery["variables"], $subquery["conjunction"] );
+					if (!empty($subtable["filter"]??"")) {
+						$filterText="(".$filterText.") AND ".$subtable["filter"];
+					}
+
+					// ORDER BY
+					$order_obj=$subquery["order_obj"] ?? $subtable["order_obj"] ?? null; // Sortierung speziell für Unterabfrage gesetzt oder normale Sortierung der Tabelle nehmen
+					$order_by=getOrderStr($order_obj);
+
+					$query_str.=" FROM ".
+						$tableFrom. // may be remote or dummy
+						" WHERE ".
+						$filterText;
+
+					// Distinct => group by
+					if (($subtable["distinct"] ?? null)==GROUP_BY) {
+						$query_str.=getGroupBy($subtable_name);
+					}
+
+					$query_str.=ifnotempty(" ORDER BY ",$order_by ).
+						" LIMIT 1";
+
+					list($subresult)=array_pad(mysql_select_array_from_dbObj($query_str,$extDb),1,null); // only one
+
+					if ($flags & QUERY_SUBQUERY_FLAT_PRIORITY) {
+						$results[$a]=arr_merge($results[$a],$subresult); // give priority to values from original database query
+					}
+					else {
+						$results[$a]=arr_merge($subresult,$results[$a]); // give priority to values from original database query
+					}
 				}
 			break;
 			
 			case "flat": // merge name-value-pairs directly in results, IF there is no collision (I.E. the original results have higher prio)
 				// nameField must be unique under the conditions given, otherwise the results may not be reproducible
-				$query_str=$subquery["nameField"].",".$subquery["valueField"].
-					" FROM ".
-					getTableFrom($subtable_name,$db_id).
-					" WHERE ".
-					getSubqueryFilter($results[$a], $subquery["criteria"], $subquery["variables"], $subquery["conjunction"] ).
-					$archiveQuery;
-				
-				$subresults=mysql_select_array_from_dbObj($query_str,$dbObj);
-				$results[$a][ $subquery["name"] ]=array();
-				for ($c=0;$c<count($subresults);$c++) {
-					if (!isset($results[$a][ $subresults[$c][ $subquery["nameField"] ] ]) || ($flags & QUERY_SUBQUERY_FLAT_PRIORITY)) { // do not overwrite
-						$this_name=$subresults[$c][ $subquery["nameField"] ];
-						$results[$a][ $this_name ]=$subresults[$c][ $subquery["valueField"] ];
-						$results[$a][ $subquery["name"] ][]=$this_name;
+				$tableFrom=getTableFrom($subtable_name,$db_id);
+				if ($tableFrom!="") {
+					$query_str=$subquery["nameField"].",".$subquery["valueField"].
+						" FROM ".
+						$tableFrom.
+						" WHERE ".
+						getSubqueryFilter($results[$a], $subquery["criteria"], $subquery["variables"], $subquery["conjunction"] ).
+						$archiveQuery;
+
+					$subresults=mysql_select_array_from_dbObj($query_str,$dbObj);
+					$results[$a][ $subquery["name"] ]=array();
+					for ($c=0;$c<count($subresults);$c++) {
+						if (!isset($results[$a][ $subresults[$c][ $subquery["nameField"] ] ]) || ($flags & QUERY_SUBQUERY_FLAT_PRIORITY)) { // do not overwrite
+							$this_name=$subresults[$c][ $subquery["nameField"] ];
+							$results[$a][ $this_name ]=$subresults[$c][ $subquery["valueField"] ];
+							$results[$a][ $subquery["name"] ][]=$this_name;
+						}
 					}
 				}
 			break;
@@ -388,73 +397,76 @@ function handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,& $results, $
 						die($subquery["table"]." is empty.");
 					}
 					
-					$group_by_str="";
-					if (($subquery["action"]??null)=="count") {
-						$query_str="SQL_CACHE COUNT(".(($subtable["distinct"] ?? false)?"DISTINCT ":"").$pkName.") AS count";
-					}
-					else {
-						// Distinct => group by
-						if (($subtable["distinct"] ?? null)==GROUP_BY && ($subquery["action"] ?? null)!="count") {
-							$group_by_str=getGroupBy($subtable_name);
+					$tableFrom=getTableFrom($subtable_name,$db_id);
+					if ($tableFrom!="") {
+						$group_by_str="";
+						if (($subquery["action"]??null)=="count") {
+							$query_str="SQL_CACHE COUNT(".(($subtable["distinct"] ?? false)?"DISTINCT ":"").$pkName.") AS count";
 						}
-						
-						$fields=array();
-						addFieldListForQuery($fields,$subtable_name,($db_id==-1));
-						$query_str=joinIfNotEmpty($fields,",");
-					}
-					
-					// default filter
-					$filterText=getSubqueryFilter($results[$a], $subquery["criteria"], $subquery["variables"], $subquery["conjunction"] );
-					if (!empty($subtable["filter"]??"")) {
-						$filterText="(".$filterText.") AND ".$subtable["filter"];
-					}
-					
-					// ORDER BY
-					if (($subquery["action"] ?? null)=="count") { // keine Sortierung nötig
-						$order_obj=array();
-					}
-					elseif (arrCount($subquery["order_obj"] ?? null)) { // Sortierung speziell für Unterabfrage gesetzt
-						$order_obj=$subquery["order_obj"];
-					}
-					else { // normale Sortierung der Tabelle nehmen
-						$order_obj=($subtable["order_obj"]??"");
-					}
-					
-					$order_by=getOrderStr($order_obj);
-					
-					$query_str.=" FROM ".
-						getTableFrom($subtable_name,$db_id).
-						" WHERE ".
-						$filterText.
-						$archiveQuery.
-						$group_by_str.
-						ifnotempty(" ORDER BY ",$order_by);
-				
-					//~ echo $query_str."\n";
-					$subresult=mysql_select_array_from_dbObj($query_str,$dbObj);
-					
-					// print_r($subresult);
-					if (($subquery["action"] ?? null)=="count") {
-						$results[$a][ $subquery["name"] ]=$subresult[0]["count"];
-					}
-					else {
-						// Rekursion (max_level einbauen)
-						if (($subquery["action"] ?? null)=="recursive") {
-							//~ print_r($subquery);
-							handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,$subresult,$subquery["table"],$flags);
-							//~ $subresult=handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,$subresult,$subquery["table"],$flags);
-							//~ print_r($subresult);
+						else {
+							// Distinct => group by
+							if (($subtable["distinct"] ?? null)==GROUP_BY && ($subquery["action"] ?? null)!="count") {
+								$group_by_str=getGroupBy($subtable_name);
+							}
+
+							$fields=array();
+							addFieldListForQuery($fields,$subtable_name,($db_id==-1));
+							$query_str=joinIfNotEmpty($fields,",");
 						}
-						
-						// procFunction
-						$procFunc = $subtable["procFunction"] ?? null;
-						if (isset($procFunc) && function_exists($procFunc)) {
-							$procFunc($subresult); // call by ref
+
+						// default filter
+						$filterText=getSubqueryFilter($results[$a], $subquery["criteria"], $subquery["variables"], $subquery["conjunction"] );
+						if (!empty($subtable["filter"]??"")) {
+							$filterText="(".$filterText.") AND ".$subtable["filter"];
 						}
-						
-						$results[$a][ $subquery["name"] ]=$subresult;
-						// set db_beauty_name
-						setDbBeautyName($results[$a][ $subquery["name"] ],$db_id,$db_beauty_name,0);
+
+						// ORDER BY
+						if (($subquery["action"] ?? null)=="count") { // keine Sortierung nötig
+							$order_obj=array();
+						}
+						elseif (arrCount($subquery["order_obj"] ?? null)) { // Sortierung speziell für Unterabfrage gesetzt
+							$order_obj=$subquery["order_obj"];
+						}
+						else { // normale Sortierung der Tabelle nehmen
+							$order_obj=($subtable["order_obj"]??"");
+						}
+
+						$order_by=getOrderStr($order_obj);
+
+						$query_str.=" FROM ".
+							$tableFrom.
+							" WHERE ".
+							$filterText.
+							$archiveQuery.
+							$group_by_str.
+							ifnotempty(" ORDER BY ",$order_by);
+
+						//~ echo $query_str."\n";
+						$subresult=mysql_select_array_from_dbObj($query_str,$dbObj);
+
+						// print_r($subresult);
+						if (($subquery["action"] ?? null)=="count") {
+							$results[$a][ $subquery["name"] ]=$subresult[0]["count"];
+						}
+						else {
+							// Rekursion (max_level einbauen)
+							if (($subquery["action"] ?? null)=="recursive") {
+								//~ print_r($subquery);
+								handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,$subresult,$subquery["table"],$flags);
+								//~ $subresult=handle_subqueries_for_dbObj($dbObj,$db_id,$db_beauty_name,$subresult,$subquery["table"],$flags);
+								//~ print_r($subresult);
+							}
+
+							// procFunction
+							$procFunc = $subtable["procFunction"] ?? null;
+							if (isset($procFunc) && function_exists($procFunc)) {
+								$procFunc($subresult); // call by ref
+							}
+
+							$results[$a][ $subquery["name"] ]=$subresult;
+							// set db_beauty_name
+							setDbBeautyName($results[$a][ $subquery["name"] ],$db_id,$db_beauty_name,0);
+						}
 					}
 				}
 			}
@@ -785,11 +797,11 @@ function setUserInformation($readSettings=true) {
 		if (!is_array($own_data)) {
 			return false;
 		}
-		$permissions=$own_data["permissions"];
-		$person_id=$own_data["person_id"];
+		$permissions=intval($own_data["permissions"]);
+		$person_id=intval($own_data["person_id"]);
 		$preferred_lang=($own_data["preferred_language"] ?? null);
 		if ($readSettings) {
-			$settings=unserialize($own_data["preferences"])??array();
+			$settings=oe_unserialize($own_data["preferences"]??null)??array();
 			$order_by_keys["analytics_type_order"]=array(
 				"columns" => getUserDefOrderObj("analytics_type"),
 				"for_table" => array("analytics_type"), 
