@@ -31,7 +31,7 @@ $page_type="async";
 $barcodeTerminal=true;
 $success=false;
 $barcodeData=array();
-$output="";
+$output=$message="";
 pageHeader();
 
 function getSound($obj_name) {
@@ -59,7 +59,10 @@ list($own_data)=array_pad(mysql_select_array(array(
 	"limit" => 1, 
 	"noErrors" => true, 
 )),1,null);
-$permissions=(($own_data["permissions"]??0) & $permissions)|_barcode_user; // does the active user have sufficient privileges? Restrictions for user barcode remain in place. Does not work somehow...
+
+if (is_array($own_data)) { // does the active user have sufficient privileges? Restrictions for user barcode remain in place. Does not work somehow...
+	$permissions=(($own_data["permissions"]??0) & $permissions)|_barcode_user;
+} // no active user: use barcode user's rights to display info
 
 $_REQUEST["table"]="chemical_storage";
 $_REQUEST["db_id"]=-1;
@@ -102,7 +105,7 @@ elseif (!empty($_REQUEST["barcode"]??"")) {
 					));
 					$person_id=$person_result["person_id"];
 					$db_user=$person_result["username"];
-					$permissions=$person_result["permissions"];
+					$permissions=$person_result["permissions"]|_barcode_user;
 					
 					echo "parent.setActivePerson(".json_encode($person_result).");\n";
 				}
@@ -144,6 +147,9 @@ echo "* /\n"; */
 if (!empty($_REQUEST["desired_action"])) {
 	list($success,$message,$pks_added)=handleDesiredAction(); // schreiboperation durchführen
 }
+if (isEmptyStr($message) && !arrCount($barcodeData["result"]??null)) {
+	$message=s("no_results");
+}
 
 if ($_REQUEST["barcode"]??null) {
 	switch ($barcodeData["table"]??null) {
@@ -156,7 +162,7 @@ if ($_REQUEST["barcode"]??null) {
 	}
 }
 
-if ($success) { // has tried to do sth
+if (!isEmptyStr($message)) {
 	echo "parent.showMessage(".fixStr($message).");\n";
 }
 

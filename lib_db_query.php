@@ -597,11 +597,16 @@ function mysql_select_array($paramHash) {
 	if (!arrCount($dbs) || in_array("-1",$dbs)) {
 		// the filter is composed by three parts: a) the filter defined in the $query scheme (for things like my_messages) - always a string, b) the filter defined by the search task ($paramHash["filter"]) which may be a string or an array[db_id] where substructure tasks were replaced by pk IN(1,3,4,..) constructs and c) a $db_filter which is always an array[db_id]=array(1,3,5,...) (or null for new searches) defining the pks to be refreshed whereas the rest comes from the cache 
 		// $paramHash["selects"] muß mit comma beginnen
+		$tableFrom=getTableFrom($table);
+		if (isEmptyStr($tableFrom)) {
+			// permission denied, will also hit remote query
+			return array();
+		}
 		$sql=$fields.
 			ifnotempty(",",$local_fields).
 			$archiveLimits.
 			($paramHash["selects"] ?? "")
-			." FROM ".getTableFrom($table).($paramHash["local_joins"] ?? "")
+			." FROM ".$tableFrom.($paramHash["local_joins"] ?? "")
 			.getDbFilterStr($paramHash["filter"] ?? null,-1,$pk,$db_filter,$commonFilterText)
 			.($distinct==GROUP_BY?getGroupBy($table):"")
 			.ifnotempty(" ORDER BY ",$order_by)
@@ -662,10 +667,14 @@ function mysql_select_array($paramHash) {
 			if (!$extDb) {
 				continue;
 			}
+			$tableFrom=getTableFrom($table,$db_id);
+			if (isEmptyStr($tableFrom)) { // try others, even though success is unlikely
+				continue;
+			}
 			
 			$sql=$fields.
 				($paramHash["selects"] ?? "")
-				." FROM ".getTableFrom($table,$db_id).($paramHash["remote_joins"] ?? "")
+				." FROM ".$tableFrom.($paramHash["remote_joins"] ?? "")
 				.getDbFilterStr($paramHash["filter"] ?? null,$db_id,$pk,$db_filter,$commonFilterText)
 				.($distinct==GROUP_BY?getGroupBy($table):"")
 				.ifnotempty(" ORDER BY ",$order_by)

@@ -213,7 +213,7 @@ function interpretBarcode($barcode,$flags=0) {
 	$retval=array();
 	if (is_array($barcodePrefixes)) foreach ($barcodePrefixes as $prefix => $data) {
 		// barcode_ignore_prefix=>for existing barcode systems, all barcodes must be assigned (no pk barcodes) and all potential fields will be checked until match found, therefore a bit slower
-		if (($g_settings["barcode_ignore_prefix"]??false) ? $data["field"]=="field" : startswith($barcode,$prefix)) {
+		if (($g_settings["barcode_ignore_prefix"]??false) ? ($data["field"]??null)=="field" : startswith($barcode,$prefix)) {
 			// prefix found
 			$baseTable=getBaseTable($data["table"]);
 			$retval["table"]=$baseTable;
