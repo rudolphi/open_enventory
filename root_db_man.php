@@ -1073,7 +1073,6 @@ getAlignTable(
 <form name=\"main\" id=\"main\" method=\"POST\"><span id=\"temp\" style=\"display:none\"></span>".
 simpleHidden("desired_action").
 showHidden(array("int_name" => "save_settings", "value" => "true", )).
-showHidden(array("int_name" => "XDEBUG_SESSION", "value" => "netbeans-xdebug", )).
 getHiddenSubmit().
 getFormElements(array(
 		READ_ONLY => false, 

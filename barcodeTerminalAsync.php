@@ -120,7 +120,7 @@ elseif (!empty($_REQUEST["barcode"]??"")) {
 				$output.=getSound("error");
 			}
 		}
-		if ($_REQUEST["storage_permanent"]) {
+		if (filter_var($_REQUEST["storage_permanent"]??false, FILTER_VALIDATE_BOOLEAN)) {
 			// just do not overwrite values in form
 			unset($barcodeData["result"]["storage_id"]);
 			unset($barcodeData["result"]["compartment"]);
