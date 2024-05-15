@@ -330,7 +330,7 @@ function getCombiButton($paramHash) {
 // Symbol nur 1x zeigen
 	global $pk_name;
 	$table=$paramHash["table"];
-	$number=intval($paramHash["number"]);
+	$number=intval($paramHash["number"]??0);
 	$db_id=$paramHash["db_id"]??null;
 	$text="";
 	
@@ -459,7 +459,7 @@ function getFields(& $columns,$listvisible="") {
 				$int_names=array_keys($data["int_names"]);
 			}
 			else {
-				$multiple=$data["multiple"]??0;
+				$multiple=$data["multiple"]??null;
 			}
 		}
 		else {
@@ -470,10 +470,10 @@ function getFields(& $columns,$listvisible="") {
 		if (isset($multiple)) {
 			for ($a=0;$a<$multiple;$a++) {
 				$text=$col.".".$a;
-				if ($visible_count==-1 || ($visible_count==0 && ($display&1)==0) || in_array($text,$listvisible) ) {
+				if ($visible_count==-1 || ($visible_count==0 && ($display&DEFAULT_OFF)==0) || in_array($text,$listvisible) ) {
 					$visible[]=$text;
 				}
-				elseif (($display & 4) || ($col=="reaction_conditions" && !($g_settings["reaction_conditions"][ $int_names[$a] ]??false))) {
+				elseif (($display & NO_ON) || ($col=="reaction_conditions" && !($g_settings["reaction_conditions"][ $int_names[$a] ]??false))) {
 					
 				}
 				else {
@@ -483,10 +483,10 @@ function getFields(& $columns,$listvisible="") {
 		}
 		else {
 			$text=$col;
-			if ($visible_count==-1 || ($visible_count==0 && ($display&1)==0) || in_array($text,$listvisible) ) {
+			if ($visible_count==-1 || ($visible_count==0 && ($display&DEFAULT_OFF)==0) || in_array($text,$listvisible) ) {
 				$visible[]=$text;
 			}
-			elseif ($display & 4) {
+			elseif ($display & NO_ON) {
 				
 			}
 			else {
@@ -1964,7 +1964,9 @@ function addTBodyCell(& $output,& $files,$idx,$subidx,& $fieldIdx,$row,$col,$par
 		);
 		
 		if (is_array($view_options[$col_options_key]["fields"]??null)) foreach ($view_options[$col_options_key]["fields"] as $field) { // yield.0
-			list($field,$idx)=explode(".",$field);
+			if (strpos($field,".")!==FALSE) {
+				list($field,$idx)=explode(".",$field);
+			}
 			
 			$addEmptyColumn=true;
 			switch ($field) {
@@ -2364,7 +2366,7 @@ function addTBodyCell(& $output,& $files,$idx,$subidx,& $fieldIdx,$row,$col,$par
 	case "molecule_name":
 		$raw=true;
 		if ($paramHash["output_type"]=="html") {
-			$retval=fixBr(strcut($row["molecule_names"],180),20,"<wbr>",true).
+			$retval=fixBr(strcut($row["molecule_names"]??"",180),20,"<wbr>",true).
 				ifNotEmpty(" (",joinIfNotEmpty(array(getSolutionFmt($row["chemical_storage_conc"]??"",$row["chemical_storage_conc_unit"]??"",$row["chemical_storage_solvent"]??""),$row["description"]??""),"; "),")"); // 3 mol/l in toluene; on activated charcoal
 		}
 		else {
@@ -2388,7 +2390,7 @@ function addTBodyCell(& $output,& $files,$idx,$subidx,& $fieldIdx,$row,$col,$par
 				"mode" => "mol", 
 				"linkTable" => $table, 
 				"linkPk" => $row[$pk_name], 
-				"filename" => $row["molecule_name"]
+				"filename" => $row["molecule_name"]??"molecule"
 			));
 		}
 		else {
