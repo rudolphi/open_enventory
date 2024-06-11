@@ -972,7 +972,8 @@ function loginToDB($allowLoginForm=true,$readSettings=true) {
 	try {
 		$db=@mysqli_connect(db_server,$db_user,$db_pw);
 	} catch (Exception $e) {
-	} 
+	}
+	mysqli_report(MYSQLI_REPORT_ERROR);
 	if (!$db) {
 		handleDatabaseAccessError($allowLoginForm);
 		return false;

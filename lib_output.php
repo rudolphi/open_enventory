@@ -808,7 +808,7 @@ function addTHeadCell(& $output,& $fieldIdx,$fullCol,$paramHash=array()) { // gi
 		$link_col=true;
 	}
 	
-	$column_data=$columns[$table][$col];
+	$column_data=$columns[$table][$col]??null;
 	if (!is_array($column_data)) {
 		$column_data=array();
 	}
@@ -2491,10 +2491,13 @@ function addTBodyCell(& $output,& $files,$idx,$subidx,& $fieldIdx,$row,$col,$par
 				$keyName=$int_name."_by";
 				$ret_array[]=getSDSLink($pkName,$row["db_id"],$row[$pkName],$int_name,$row[$keyName]);
 			}
-			else {
+			elseif (startsWith($paramHash["output_type"],"zip/")) {
 				$filename=$idx."_sds_".$g_settings["safety_sheet_lang"]."_".cutFilename($row[$int_name."_url"]);
 				$ret_array[]=$filename;
 				$files[$filename]=$row[$int_name."_blob"];
+			}
+			else {
+				$ret_array[]=$row[$int_name."_url"];
 			}
 			unset($pkName);
 		}
@@ -2514,10 +2517,13 @@ function addTBodyCell(& $output,& $files,$idx,$subidx,& $fieldIdx,$row,$col,$par
 				$keyName=$int_name."_by";
 				$ret_array[]=getSDSLink($pkName,$row["db_id"],$row[$pkName],$int_name,$row[$keyName]);
 			}
-			else {
+			elseif (startsWith($paramHash["output_type"],"zip/")) {
 				$filename=$idx."_sds_".$g_settings["alt_safety_sheet_lang"]."_".cutFilename($row[$int_name."_url"]);
 				$ret_array[]=$filename;
 				$files[$filename]=$row[$int_name."_blob"];
+			}
+			else {
+				$ret_array[]=$row[$int_name."_url"];
 			}
 		}
 		
