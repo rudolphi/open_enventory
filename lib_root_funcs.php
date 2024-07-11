@@ -269,15 +269,11 @@ function getSharedViewDefinition($tabname,$tabdata) {
 		return $retval;
 	}
 	elseif ($tabdata["defaultSecret"]??false) {
-		$suffix="shared";
-		$cond="=TRUE";
+		return $retval."WHERE ".$tabname.".".$tabname."_shared;";
 	}
 	else {
-		$suffix="secret";
-		$cond=" IS NULL";
+		return $retval."WHERE ".$tabname.".".$tabname."_secret IS NULL OR NOT ".$tabname.".".$tabname."_secret;";
 	}
-	$retval.="WHERE ".$tabname.".".$tabname."_".$suffix.$cond.";";
-	return $retval;
 }
 
 function getDummyViewDefinition($tabname) {
